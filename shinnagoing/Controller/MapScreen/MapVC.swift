@@ -6,6 +6,7 @@ import CoreData
 class MapVC: UIViewController {
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     private var markers: [NMFMarker] = []
+    
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -41,16 +42,19 @@ class MapVC: UIViewController {
         configureUI()
         setupInitialCamera()
         
+        // 더미 데이터 저장
         let kickboard1 = KickboardEntity(context: context)
         kickboard1.kickboardID = "kickboard_001"
         kickboard1.latitude = 35.836
         kickboard1.longitude = 129.219
         kickboard1.battery = 100
+        
         let kickboard2 = KickboardEntity(context: context)
         kickboard2.kickboardID = "kickboard_002"
         kickboard2.latitude = 35.836
         kickboard2.longitude = 129.216
         kickboard2.battery = 70
+        
         do {
             try context.save()
             fetchDataMarkers()
@@ -68,35 +72,42 @@ class MapVC: UIViewController {
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         do {
             let kickboards = try context.fetch(fetchRequest)
-            
-            // Core Data에서 가져온 데이터를 기반으로 마커를 지도에 추가
             for kickboard in kickboards {
-                let latitude = kickboard.latitude
-                let longitude = kickboard.longitude
-                addMarker(latitude: latitude, longitude: longitude)
+                addMarker(kickboard: kickboard)
             }
         } catch {
             print("Error fetching locations: \(error)")
         }
-        
     }
-    
-    private func addMarker(latitude: Double, longitude: Double) {
+
+    private func addMarker(kickboard: KickboardEntity) {
         let marker = NMFMarker()
-        marker.position = NMGLatLng(lat: latitude, lng: longitude)
+        marker.position = NMGLatLng(lat: kickboard.latitude, lng: kickboard.longitude)
         marker.mapView = mapView
         markers.append(marker)
+        
+        // 마커에 킥보드 정보를 저장
+        marker.userInfo = [
+            "kickboardID": kickboard.kickboardID ?? "",
+            "battery": kickboard.battery
+        ]
+        
+        // 마커를 터치했을 때 모달 띄우기
+        marker.touchHandler = { [weak self] (overlay) -> Bool in
+            guard let self = self else { return true }
+            if let marker = overlay as? NMFMarker,
+               let userInfo = marker.userInfo as? [String: Any],
+               let battery = userInfo["battery"] as? Int16 {
+                presentModal(from: self, battery: battery)
+            }
+            return true
+        }
     }
-    
+
     private func configureUI() {
         view.backgroundColor = .white
         
-        // UI 요소들을 뷰에 추가
-        [
-            logoLabel,
-            mapView,
-            searchTextField
-        ].forEach { view.addSubview($0) }
+        [logoLabel, mapView, searchTextField].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
