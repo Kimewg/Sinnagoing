@@ -88,11 +88,7 @@ class MyPageVC: UIViewController {
         view.backgroundColor = .white
         useTableView.delegate = self
         useTableView.dataSource = self
-        navigationBarItem()
         configure()
-    }
-    func navigationBarItem() {
-        self.title = "마이페이지"
     }
     
     func configure() {
