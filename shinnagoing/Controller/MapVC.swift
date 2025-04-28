@@ -3,6 +3,7 @@ import NMapsMap
 import SnapKit
 
 class MapVC: UIViewController {
+    
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
