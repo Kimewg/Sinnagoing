@@ -3,6 +3,19 @@ import SnapKit
 
 class MyPageVC: UIViewController {
     
+    var myPageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "마이페이지"
+        label.font = .boldSystemFont(ofSize: 19)
+        return label
+    }()
+    
+    let separator: UIView = {
+        let separator = UIView()
+        separator.backgroundColor = UIColor(hex: "CFC8C8")
+        return separator
+    }()
+    
     var usingView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(hex: "F5F5F5")
@@ -94,7 +107,9 @@ class MyPageVC: UIViewController {
     func configure() {
         [usingView,
          useTableView,
-         addBoardTableView
+         addBoardTableView,
+         myPageLabel,
+         separator
         ].forEach{ view.addSubview($0) }
         
         [imageView,
@@ -151,6 +166,15 @@ class MyPageVC: UIViewController {
         boardBraekDown.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(14)
             make.leading.equalToSuperview().offset(17)
+        }
+        separator.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(1)
+            make.top.equalToSuperview().offset(98)
+            make.height.equalTo(1)
+        }
+        myPageLabel.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(63)
+            make.centerX.equalToSuperview()
         }
     }
 }
