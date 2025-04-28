@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-class SecondViewController: UIViewController {
+class AddBoardVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-class LoginViewController: UIViewController {
+class LoginVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()

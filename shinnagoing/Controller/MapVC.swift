@@ -2,7 +2,7 @@ import UIKit
 import NMapsMap
 import SnapKit
 
-class MapViewController: UIViewController {
+class MapVC: UIViewController {
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false

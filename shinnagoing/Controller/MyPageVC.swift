@@ -1,7 +1,7 @@
 import UIKit
 import SnapKit
 
-class ThirdViewController: UIViewController {
+class MyPageVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()

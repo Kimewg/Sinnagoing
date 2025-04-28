@@ -1,6 +1,6 @@
 import UIKit
 
-class TabBarController: UITabBarController {
+class TabBarVC: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureTabBar()
@@ -9,18 +9,18 @@ class TabBarController: UITabBarController {
 
     private func configureTabBar() {
         // Map
-        let mapVC = MapViewController()
+        let mapVC = MapVC()
         let nav1 = UINavigationController(rootViewController: mapVC)
         nav1.tabBarItem = UITabBarItem(title: "Map", image: nil, selectedImage: nil)
 
         // Second
-        let secondVC = SecondViewController()
-        let nav2 = UINavigationController(rootViewController: secondVC)
+        let addBoardVC = AddBoardVC()
+        let nav2 = UINavigationController(rootViewController: addBoardVC)
         nav2.tabBarItem = UITabBarItem(title: "Second", image: nil, selectedImage: nil)
 
         // Third
-        let thirdVC = ThirdViewController()
-        let nav3 = UINavigationController(rootViewController: thirdVC)
+        let myPageVC = MyPageVC()
+        let nav3 = UINavigationController(rootViewController: myPageVC)
         nav3.tabBarItem = UITabBarItem(title: "Third", image: nil, selectedImage: nil)
 
         viewControllers = [nav1, nav2, nav3]
