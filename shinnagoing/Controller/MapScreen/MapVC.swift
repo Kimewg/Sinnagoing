@@ -52,26 +52,9 @@ class MapVC: UIViewController {
         super.viewDidLoad()
         configureUI()
         setupInitialCamera()
+        DummyDataManager.shared.insertKickboardDummyData()
+        fetchDataMarkers()
         
-        // 더미 데이터 저장
-        let kickboard1 = KickboardEntity(context: context)
-        kickboard1.kickboardID = "kickboard_001"
-        kickboard1.latitude = 35.836
-        kickboard1.longitude = 129.219
-        kickboard1.battery = 100
-        
-        let kickboard2 = KickboardEntity(context: context)
-        kickboard2.kickboardID = "kickboard_002"
-        kickboard2.latitude = 35.836
-        kickboard2.longitude = 129.216
-        kickboard2.battery = 70
-        
-        do {
-            try context.save()
-            fetchDataMarkers()
-        } catch {
-            print("저장 실패")
-        }
     }
     
     private func setupInitialCamera() {
