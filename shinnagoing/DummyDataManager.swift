@@ -68,7 +68,7 @@ class DummyDataManager {
                 let kickboard9 = KickboardEntity(context: context)
                 kickboard9.kickboardID = "kickboard_002"
                 kickboard9.latitude = 35.838
-                kickboard9.longitude = 129.216
+                kickboard9.longitude = 129.212
                 kickboard9.battery = 30
                 
                 try context.save()
