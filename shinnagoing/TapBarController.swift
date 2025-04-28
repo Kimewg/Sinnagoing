@@ -1,0 +1,35 @@
+import UIKit
+
+class TabBarController: UITabBarController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureTabBar()
+        setupTabBarAppearance()
+    }
+
+    private func configureTabBar() {
+        // Map
+        let mapVC = MapViewController()
+        let nav1 = UINavigationController(rootViewController: mapVC)
+        nav1.tabBarItem = UITabBarItem(title: "Map", image: nil, selectedImage: nil)
+
+        // Second
+        let secondVC = SecondViewController()
+        let nav2 = UINavigationController(rootViewController: secondVC)
+        nav2.tabBarItem = UITabBarItem(title: "Second", image: nil, selectedImage: nil)
+
+        // Third
+        let thirdVC = ThirdViewController()
+        let nav3 = UINavigationController(rootViewController: thirdVC)
+        nav3.tabBarItem = UITabBarItem(title: "Third", image: nil, selectedImage: nil)
+
+        viewControllers = [nav1, nav2, nav3]
+    }
+
+    private func setupTabBarAppearance() {
+        tabBar.backgroundColor = .white
+        tabBar.tintColor = .systemBlue // 선택된 탭 아이템 색상
+        tabBar.unselectedItemTintColor = .gray // 선택 안된 탭 아이템 색상
+    }
+}
+
