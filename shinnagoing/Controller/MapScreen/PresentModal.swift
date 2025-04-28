@@ -128,12 +128,16 @@ extension UIViewController {
         // 확인 버튼
         let confirmAction = UIAlertAction(title: "확인", style: .default) { _ in
             print("대여가 완료되었습니다.")
+            // 모달을 닫고 returnButton을 보이게 함
+            self.dismiss(animated: true, completion: {
+                if let mapVC = self as? MapVC {
+                    mapVC.returnButton.isHidden = false // MapVC에서 returnButton 보이게 함
+                }
+            })
         }
         
         alert.addAction(confirmAction)
-        
         present(alert, animated: true, completion: nil)
     }
-
 }
 
