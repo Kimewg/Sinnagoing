@@ -2,7 +2,6 @@ import UIKit
 import SnapKit
 
 class LoginVC: UIViewController {
-    
     var idTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "아이디를 입력하세요."
@@ -12,7 +11,6 @@ class LoginVC: UIViewController {
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
     var passWordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "비밀번호를 입력하세요."
@@ -24,7 +22,6 @@ class LoginVC: UIViewController {
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
     var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "logo")
@@ -32,7 +29,6 @@ class LoginVC: UIViewController {
         imageView.clipsToBounds = true
         return imageView
     }()
-    
     var loginButton: UIButton = {
         let button = UIButton()
         button.setTitle("로그인", for: .normal)
@@ -42,7 +38,6 @@ class LoginVC: UIViewController {
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         return button
     }()
-    
     lazy var joinButton: UIButton = {
         let button = UIButton()
         button.setTitle("회원가입", for: .normal)
@@ -51,68 +46,95 @@ class LoginVC: UIViewController {
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchDown)
         return button
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .white
         configure()
+        navigationItemSetting()
+
+        loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        joinButton.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
     }
-    
+
+    func navigationItemSetting() {
+        self.title = "로그인"
+        self.navigationController?.navigationBar.tintColor = .black
+    }
+
     func configure() {
-        [idTextField,
-         passWordTextField,
-         imageView,
-         loginButton,
-         joinButton].forEach { view.addSubview($0) }
-        
+        [idTextField, passWordTextField, imageView, loginButton, joinButton].forEach { view.addSubview($0) }
+
         idTextField.snp.makeConstraints { make in
-            make.trailing.leading.equalToSuperview().inset(40)
             make.top.equalToSuperview().offset(393)
-            make.bottom.equalToSuperview().inset(437)
+            make.leading.trailing.equalToSuperview().inset(40)
             make.height.equalTo(44)
         }
-        
+
         passWordTextField.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
             make.top.equalTo(idTextField.snp.bottom).offset(23)
-            make.trailing.leading.equalToSuperview().inset(40)
+            make.leading.trailing.equalToSuperview().inset(40)
             make.height.equalTo(44)
         }
-        
+
         imageView.snp.makeConstraints { make in
             make.bottom.equalTo(idTextField.snp.top).offset(-62)
             make.centerX.equalToSuperview()
             make.height.equalTo(94)
             make.width.equalTo(143)
         }
-        
+
         loginButton.snp.makeConstraints { make in
             make.top.equalTo(passWordTextField.snp.bottom).offset(23)
-            make.centerX.equalToSuperview()
-            make.trailing.leading.equalToSuperview().inset(40)
+            make.leading.trailing.equalToSuperview().inset(40)
             make.height.equalTo(42)
         }
-        
+
         joinButton.snp.makeConstraints { make in
             make.top.equalTo(loginButton.snp.bottom).offset(23)
             make.centerX.equalToSuperview()
-            make.trailing.leading.equalToSuperview().inset(40)
+            make.leading.trailing.equalToSuperview().inset(40)
             make.height.equalTo(42)
         }
-        
     }
-    @objc func buttonTapped() {
-        print("Tap")
-        let vc = JoinVC()
-        self.navigationItem.backButtonTitle = ""
-        navigationController?.pushViewController(vc, animated: true)
-}
-    
-    
+
+    @objc func loginButtonTapped() {
+        guard let id = idTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty,
+              let password = passWordTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !password.isEmpty else {
+            showAlert(title: "오류", message: "아이디와 비밀번호를 모두 입력해주세요.")
+            return
+        }
+        
+        // 저장된 회원 리스트 가져오기
+        let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
+        
+        // 입력한 정보와 일치하는 회원이 있는지 확인
+        if users.contains(where: { $0["id"] == id && $0["password"] == password }) {
+            print("로그인 성공")
+            moveToMapVC()
+        } else {
+            showAlert(title: "로그인 실패", message: "아이디 또는 비밀번호가 일치하지 않습니다.")
+        }
+    }
+
+    func moveToMapVC() {
+        let mapVC = MapVC()
+        navigationController?.pushViewController(mapVC, animated: true)
+    }
+
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+
+    @objc func joinButtonTapped() {
+        let joinVC = JoinVC()
+        navigationController?.pushViewController(joinVC, animated: true)
+    }
 }
 
 extension UIColor {

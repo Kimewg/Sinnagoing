@@ -1,8 +1,6 @@
 import SnapKit
 import UIKit
-
 class JoinVC: UIViewController {
-    
     var idTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "아이디를 입력하세요."
@@ -12,12 +10,10 @@ class JoinVC: UIViewController {
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
     var passWordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "비밀번호를 입력하세요."
         textField.text = ""
-        // 비밀번호를 입력할때 비밀번호가 안보이게 입력
         textField.isSecureTextEntry = true
         textField.textContentType = .username
         textField.textColor = UIColor(hex: "C89F43")
@@ -25,7 +21,6 @@ class JoinVC: UIViewController {
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
     var secondPasswordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "비밀번호를 한번 더 입력하세요."
@@ -37,7 +32,6 @@ class JoinVC: UIViewController {
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
     var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "joinLogo")
@@ -45,7 +39,6 @@ class JoinVC: UIViewController {
         imageView.clipsToBounds = true
         return imageView
     }()
-    
     var joinButton: UIButton = {
         let button = UIButton()
         button.setTitle("회원가입", for: .normal)
@@ -55,13 +48,11 @@ class JoinVC: UIViewController {
         button.backgroundColor = UIColor(hex: "C89F43")
         return button
     }()
-    
     let separator: UIView = {
         let separator = UIView()
         separator.backgroundColor = UIColor(hex: "CFC8C8")
         return separator
     }()
-    
     let kakaoImage: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "kakao")
@@ -69,7 +60,6 @@ class JoinVC: UIViewController {
         image.clipsToBounds = true
         return image
     }()
-    
     let naver: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "naver")
@@ -77,7 +67,6 @@ class JoinVC: UIViewController {
         image.clipsToBounds = true
         return image
     }()
-    
     let sparta: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "sparta")
@@ -85,18 +74,17 @@ class JoinVC: UIViewController {
         image.clipsToBounds = true
         return image
     }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
         navigationItem()
+        // 버튼 액션 추가
+        joinButton.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
     }
-    
     func navigationItem() {
         self.title = "회원 가입"
         self.navigationController?.navigationBar.tintColor = .black
     }
-    
     func configure() {
         view.backgroundColor = .white
         [ idTextField,
@@ -108,7 +96,6 @@ class JoinVC: UIViewController {
           naver,
           kakaoImage,
           sparta].forEach { view.addSubview($0) }
-        
         idTextField.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(40)
             make.top.equalToSuperview().offset(164)
@@ -157,8 +144,36 @@ class JoinVC: UIViewController {
             make.top.equalTo(kakaoImage.snp.bottom).offset(24)
             make.width.equalTo(55)
         }
+    }
+    @objc func joinButtonTapped() {
+        guard let id = idTextField.text, !id.isEmpty,
+              let password = passWordTextField.text, !password.isEmpty,
+              let confirmPassword = secondPasswordTextField.text, !confirmPassword.isEmpty else {
+            showAlert(title: "오류", message: "아이디 또는 비밀번호가 비어있습니다.")
+            return
+        }
         
+        guard password == confirmPassword else {
+            showAlert(title: "비밀번호 불일치", message: "비밀번호가 일치하지 않습니다.")
+            return
+        }
         
+        // 기존 회원 리스트 가져오기
+        var users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
 
+        // 새 회원 추가
+        let newUser = ["id": id, "password": password]
+        users.append(newUser)
+
+        // 저장
+        UserDefaults.standard.set(users, forKey: "users")
+
+        print("회원가입 성공: \(id)")
+        navigationController?.popViewController(animated: true)
+    }
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
