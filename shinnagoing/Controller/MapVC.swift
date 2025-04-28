@@ -41,22 +41,11 @@ class MapVC: UIViewController {
         configureUI()
         setupInitialCamera()
         
-        let kickboard1 = KickboardEntity(context: context)
-        kickboard1.kickboardID = "kickboard_001"
-        kickboard1.latitude = 35.836
-        kickboard1.longitude = 129.219
-        kickboard1.battery = 100
-        let kickboard2 = KickboardEntity(context: context)
-        kickboard2.kickboardID = "kickboard_002"
-        kickboard2.latitude = 35.836
-        kickboard2.longitude = 129.216
-        kickboard2.battery = 70
-        do {
-            try context.save()
-            fetchDataMarkers()
-        } catch {
-            print("저장 실패")
-        }
+        //더미데이터 기본값 첫 앱 실행시 받아오도록.(기본더미데이터 중복 되지 않도록 설정해 둠)
+        DummyDataManager.shared.insertKickboardDummyData()
+        
+        fetchDataMarkers()
+
     }
     
     private func setupInitialCamera() {
