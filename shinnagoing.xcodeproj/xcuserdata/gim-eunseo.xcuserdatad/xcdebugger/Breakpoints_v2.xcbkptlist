@@ -7,16 +7,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "AE32D0A2-1D12-4EA5-AF3A-2CFDF0E3F5DC"
+            uuid = "8FBDF9AF-1F9D-49A3-8D9C-8558CE6E2413"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "shinnagoing/Controller/MapScreen/MapVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "225"
-            endingLineNumber = "225"
-            landmarkName = "fetchLocations(query:)"
+            startingLineNumber = "258"
+            endingLineNumber = "258"
+            landmarkName = "geocodeAddress(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

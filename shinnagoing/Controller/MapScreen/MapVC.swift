@@ -227,8 +227,14 @@ class MapVC: UIViewController {
                         self.presentAlert(title: "검색 결과 없음", message: "장소를 찾을 수 없습니다.")
                     }
                 } else {
-                    // 검색 결과가 있으면 첫 번째 항목을 처리
-                    self.geocodeAddress(result.items.first?.address ?? result.items.first?.roadAddress ?? "")
+                    // 검색 결과가 있으면 첫 번째(title) 항목을 처리
+                    let roadAddress = result.items.first?.roadAddress ?? ""
+                    let address = result.items.first?.address ?? ""
+                    if roadAddress.count > 0 {
+                        self.geocodeAddress(roadAddress)
+                    } else {
+                        self.geocodeAddress(address)
+                    }
                 }
             } catch {
                 // 파싱 오류가 발생하면 오류 메시지를 출력하고 알림을 띄움
