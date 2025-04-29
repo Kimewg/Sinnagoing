@@ -25,7 +25,7 @@ class MyPageVC: UIViewController {
     
     var imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "kickBoard")
+        imageView.image = UIImage(named: "horse")
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         return imageView
@@ -33,7 +33,7 @@ class MyPageVC: UIViewController {
     
     var userLabel: UILabel = {
         let label = UILabel()
-        label.text = "[유저아이디]님,"
+        label.text = "최영락님,"
         label.textColor = .black
         label.font = UIFont.boldSystemFont(ofSize: 13)
         return label
@@ -50,7 +50,7 @@ class MyPageVC: UIViewController {
     var boardConditions2: UILabel = {
         let label = UILabel()
         label.text = "이용중"
-        label.textColor = UIColor(hex: "#C89F43")
+        label.textColor = UIColor(hex: "915B5B")
         label.font = UIFont.boldSystemFont(ofSize: 20)
         return label
     }()
@@ -72,15 +72,14 @@ class MyPageVC: UIViewController {
     var logout: UIButton = {
         let button = UIButton()
         button.setTitle("로그아웃", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.backgroundColor = .white
+        button.setTitleColor(UIColor(hex: "868383"), for: .normal)
+        button.backgroundColor = UIColor(hex: "#F5F5F5")
         button.layer.cornerRadius = 10
-        button.layer.borderWidth = 1
-        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 13)
         return button
     }()
     
-    var boardBraekDown: UILabel = {
+    var boardBreakDown: UILabel = {
         let label = UILabel()
         label.text = "킥보드 이용내역"
         label.textColor = .black
@@ -105,79 +104,98 @@ class MyPageVC: UIViewController {
     }
     
     func configure() {
-        [usingView,
-         useTableView,
-         addBoardTableView,
-         myPageLabel,
-         separator
-        ].forEach{ view.addSubview($0) }
+        [
+            myPageLabel,
+            separator,
+            usingView,
+            boardBreakDown, // <- 테이블뷰보다 위에 추가
+            useTableView,
+            addBoardList,   // <- 테이블뷰보다 위에 추가
+            addBoardTableView,
+            logout
+        ].forEach { view.addSubview($0) }
         
-        [imageView,
-         userLabel,
-         boardConditions,
-         boardConditions2,
-         logout
-        ].forEach { usingView.addSubview($0)}
+        [imageView, userLabel, boardConditions, boardConditions2].forEach { usingView.addSubview($0) }
         
-        addBoardTableView.addSubview(addBoardList)
-        useTableView.addSubview(boardBraekDown)
-        
-        usingView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(132)
-            make.trailing.leading.equalToSuperview().inset(42)
-            make.height.equalTo(84)
-        }
-        
-        imageView.snp.makeConstraints { make in
-            make.size.equalTo(90)
-            make.trailing.equalToSuperview().inset(16)
-        }
-        userLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(8)
-            make.leading.equalToSuperview().offset(15)
-        }
-        boardConditions.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(15)
-            make.bottom.equalToSuperview().inset(26)
-        }
-        boardConditions2.snp.makeConstraints { make in
-            make.bottom.equalToSuperview().inset(26)
-            make.leading.equalToSuperview().offset(80)
-        }
-        useTableView.snp.makeConstraints { make in
-            make.top.equalTo(usingView.snp.bottom).offset(32)
-            make.leading.trailing.equalToSuperview().inset(42)
-            make.height.equalTo(144)
-        }
-        addBoardTableView.snp.makeConstraints { make in
-            make.top.equalTo(useTableView.snp.bottom).offset(56)
-            make.leading.trailing.equalToSuperview().inset(42)
-            make.height.equalTo(144)
-        }
-        logout.snp.makeConstraints{ make in
-            make.width.equalTo(322)
-            make.height.equalTo(39)
-            make.top.equalTo(addBoardTableView.snp.bottom).offset(52)
-        }
-        addBoardList.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(14)
-            make.leading.equalToSuperview().offset(17)
-        }
-        boardBraekDown.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(14)
-            make.leading.equalToSuperview().offset(17)
-        }
-        separator.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(1)
-            make.top.equalToSuperview().offset(98)
-            make.height.equalTo(1)
-        }
+        // MyPage Title
         myPageLabel.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(63)
             make.centerX.equalToSuperview()
         }
+        
+        // Separator
+        separator.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(98)
+            make.leading.trailing.equalToSuperview().inset(1)
+            make.height.equalTo(1)
+        }
+        
+        // Using View
+        usingView.snp.makeConstraints { make in
+            make.top.equalTo(separator.snp.bottom).offset(34) // ← 깔끔하게 separator 기준
+            make.leading.trailing.equalToSuperview().inset(42)
+            make.height.equalTo(84)
+        }
+        
+        imageView.snp.makeConstraints { make in
+            make.size.equalTo(81)
+            make.trailing.equalToSuperview().inset(16)
+            make.centerY.equalToSuperview() // 이거 추가
+        }
+        
+        userLabel.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(8)
+            make.leading.equalToSuperview().offset(15)
+        }
+        
+        boardConditions.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(15)
+            make.bottom.equalToSuperview().inset(26)
+        }
+        
+        boardConditions2.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(80)
+            make.bottom.equalToSuperview().inset(26)
+        }
+        
+        // boardBreakDown (킥보드 이용내역 제목)
+        boardBreakDown.snp.makeConstraints { make in
+            make.top.equalTo(usingView.snp.bottom).offset(29)
+            make.leading.equalToSuperview().offset(46)
+            make.height.equalTo(22)
+        }
+        
+        // useTableView
+        useTableView.snp.makeConstraints { make in
+            make.top.equalTo(boardBreakDown.snp.bottom).offset(5)
+            make.leading.trailing.equalToSuperview().inset(42)
+            make.height.equalTo(169)
+        }
+        
+        // addBoardList (내가 등록한 킥보드 제목)
+        addBoardList.snp.makeConstraints { make in
+            make.top.equalTo(useTableView.snp.bottom).offset(16)
+            make.leading.equalToSuperview().offset(46)
+            make.height.equalTo(22)
+        }
+        
+        // addBoardTableView
+        addBoardTableView.snp.makeConstraints { make in
+            make.top.equalTo(addBoardList.snp.bottom).offset(8)
+            make.leading.trailing.equalToSuperview().inset(42)
+            make.height.equalTo(169)
+        }
+        
+        // logout
+        logout.snp.makeConstraints { make in
+            make.top.equalTo(addBoardTableView.snp.bottom).offset(52)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(128)
+            make.height.equalTo(33)
+        }
     }
 }
+
 
 extension MyPageVC: UITableViewDataSource {
     //섹션 개수

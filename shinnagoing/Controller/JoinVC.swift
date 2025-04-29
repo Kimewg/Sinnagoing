@@ -5,14 +5,14 @@ class JoinVC: UIViewController {
     
     var userNameLabel: UILabel = {
         let label = UILabel()
-        label.text = "이름을 입력해주세요."
+        label.text = "이름 입력"
         label.font = .boldSystemFont(ofSize: 18)
         label.textColor = .black
         return label
     }()
     var userNameTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "이름을 입력하세요."
+        textField.placeholder = "이름"
         textField.text = ""
         textField.textColor = UIColor(hex: "915B5B")
         textField.backgroundColor = UIColor(hex: "F5F5F5")
@@ -21,14 +21,14 @@ class JoinVC: UIViewController {
     }()
     var idLabel: UILabel = {
         let label = UILabel()
-        label.text = "아이디를 입력해주세요."
+        label.text = "아이디 입력"
         label.font = .boldSystemFont(ofSize: 18)
         label.textColor = .black
         return label
     }()
     var idTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "아이디를 입력하세요."
+        textField.placeholder = "아이디"
         textField.text = ""
         textField.textColor = UIColor(hex: "915B5B")
         textField.backgroundColor = UIColor(hex: "F5F5F5")
@@ -37,14 +37,14 @@ class JoinVC: UIViewController {
     }()
     var passWordLabel: UILabel = {
         let label = UILabel()
-        label.text = "비밀번호를 입력해주세요."
+        label.text = "비밀번호 입력"
         label.font = .boldSystemFont(ofSize: 18)
         label.textColor = .black
         return label
     }()
     var passWordTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "비밀번호를 입력하세요."
+        textField.placeholder = "비밀번호"
         textField.text = ""
         // 비밀번호를 입력할때 비밀번호가 안보이게 입력
         textField.isSecureTextEntry = true
@@ -56,14 +56,14 @@ class JoinVC: UIViewController {
     }()
     var secondPasswordLabel: UILabel = {
         let label = UILabel()
-        label.text = "비밀번호를 한번 더 입력하세요."
+        label.text = "비밀번호 확인"
         label.font = .boldSystemFont(ofSize: 18)
         label.textColor = .black
         return label
     }()
     var secondPasswordTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "비밀번호를 한번 더 입력하세요."
+        textField.placeholder = "비밀번호"
         textField.text = ""
         textField.isSecureTextEntry = true
         textField.textContentType = .username

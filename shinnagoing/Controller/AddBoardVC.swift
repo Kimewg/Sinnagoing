@@ -1,7 +1,15 @@
 import UIKit
 import SnapKit
+import NMapsMap
 
 class AddBoardVC: UIViewController {
+    
+    let mapView: NMFMapView = {
+        let mapView = NMFMapView()
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        mapView.layer.borderWidth = 1
+        return mapView
+    }()
     
     var label: UILabel = {
         let label = UILabel()
@@ -44,15 +52,15 @@ class AddBoardVC: UIViewController {
         return textField
     }()
     
-//    var longitude: UITextField = {
-//        let textField = UITextField()
-//        textField.placeholder = "경도를 입력하세요"
-//        textField.text = ""
-//        textField.textColor = UIColor(hex: "C89F43")
-//        textField.backgroundColor = UIColor(hex: "F6F6F6")
-//        textField.borderStyle = .roundedRect
-//        return textField
-//    }()
+    let addButtton : UIButton = {
+        let button = UIButton()
+        button.setTitle("등록하기", for: .normal)
+        button.setTitleColor(UIColor(hex: "E7E2CC"), for: .normal)
+        button.backgroundColor = UIColor(hex: "915B5B")
+        button.layer.cornerRadius = 10
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        return button
+    }()
     
     let separator: UIView = {
         let separator = UIView()
@@ -71,43 +79,50 @@ class AddBoardVC: UIViewController {
          label2,
          addBoardImage,
          address,
-//         longitude,
          separator,
-         addLabel].forEach { view.addSubview($0) }
+         addLabel,
+         mapView,
+         addButtton].forEach { view.addSubview($0) }
     
         label.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(19)
-            make.top.equalToSuperview().offset(156)
+            make.leading.equalToSuperview().offset(25)
+            make.top.equalToSuperview().offset(142)
         }
+        
         label2.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(30)
+            make.leading.equalToSuperview().offset(29)
             make.top.equalTo(label.snp.bottom).offset(10)
         }
-        addBoardImage.snp.makeConstraints { make in
-            make.top.equalTo(label2.snp.bottom).offset(36)
-            make.leading.equalToSuperview().offset(20)
-            make.size.equalTo(90)
+        
+        mapView.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview()
+            make.top.equalTo(label2.snp.bottom).offset(16)
+            make.height.equalTo(332)
         }
+        
         address.snp.makeConstraints { make in
-            make.leading.equalTo(addBoardImage.snp.trailing).offset(15)
-            make.top.equalTo(label2.snp.bottom).offset(50)
+            make.centerX.equalToSuperview()
+            make.top.equalTo(mapView.snp.bottom).offset(33)
+            make.width.equalTo(348)
             make.height.equalTo(44)
-            make.width.equalTo(227)
         }
-//        longitude.snp.makeConstraints { make in
-//            make.leading.equalTo(addBoardImage.snp.trailing).offset(15)
-//            make.top.equalTo(latitude.snp.bottom).offset(14)
-//            make.height.equalTo(44)
-//            make.width.equalTo(227)
-//        }
+        
+        addButtton.snp.makeConstraints { make in
+            make.top.equalTo(address.snp.bottom).offset(25)
+            make.trailing.leading.equalToSuperview().inset(26)
+            make.height.equalTo(46)
+        }
+        
         separator.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(1)
             make.top.equalToSuperview().offset(98)
             make.height.equalTo(1)
         }
+        
         addLabel.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(63)
             make.centerX.equalToSuperview()
         }
+        
     }
 }
