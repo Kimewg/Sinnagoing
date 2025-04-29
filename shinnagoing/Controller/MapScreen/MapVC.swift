@@ -27,6 +27,7 @@ class MapVC: UIViewController {
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 10
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.addTarget(self, action: #selector(focusSearchField), for: .touchUpInside)
         return textField
     }()
     
@@ -64,11 +65,6 @@ class MapVC: UIViewController {
         DummyDataManager.shared.insertKickboardDummyData()
         fetchDataMarkers()
         searchTextField.delegate = self
-        
-        // 키보드가 자동으로 올라오도록 설정
-        DispatchQueue.main.async {
-            self.searchTextField.becomeFirstResponder()
-        }
     }
     
     // MARK: - UI Setup
@@ -173,6 +169,9 @@ class MapVC: UIViewController {
             self.returnButton.isHidden = true
         })
         present(alert, animated: true)
+    }
+    @objc func focusSearchField() {
+        searchTextField.becomeFirstResponder()
     }
     
     // MARK: - Naver API
