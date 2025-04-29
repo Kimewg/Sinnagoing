@@ -106,7 +106,7 @@ class MapVC: UIViewController {
         // 지도에 카메라 이동 적용
         mapView.moveCamera(cameraUpdate)
     }
-
+    
     // 데이터베이스에서 킥보드 정보를 가져와서 마커를 추가하는 함수
     private func fetchDataMarkers() {
         // KickboardEntity에 대한 FetchRequest 생성
@@ -116,13 +116,17 @@ class MapVC: UIViewController {
             // 데이터베이스에서 킥보드 데이터 가져오기
             let kickboards = try context.fetch(fetchRequest)
             // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach { addMarker(kickboard: $0) }
+            kickboards.forEach {
+                if !$0.isRentaled {
+                    addMarker(kickboard: $0)
+                }
+            }
         } catch {
             // 데이터 가져오기 실패 시 에러 출력
             print("Error fetching locations: \(error)")
         }
     }
-
+    
     // 킥보드 데이터를 기반으로 마커를 지도에 추가하는 함수
     private func addMarker(kickboard: KickboardEntity) {
         // NMFMarker 객체 생성
@@ -159,7 +163,7 @@ class MapVC: UIViewController {
             return true
         }
     }
-
+    
     
     // MARK: - Actions
     
@@ -224,7 +228,7 @@ class MapVC: UIViewController {
                     }
                 } else {
                     // 검색 결과가 있으면 첫 번째 항목을 처리
-                    self.geocodeAddress(result.items.first?.roadAddress ?? "")
+                    self.geocodeAddress(result.items.first?.address ?? result.items.first?.roadAddress ?? "")
                 }
             } catch {
                 // 파싱 오류가 발생하면 오류 메시지를 출력하고 알림을 띄움
