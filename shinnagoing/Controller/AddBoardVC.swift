@@ -46,9 +46,20 @@ class AddBoardVC: UIViewController {
         let textField = UITextField()
         textField.placeholder = "주소를 입력하세요"
         textField.text = ""
-        textField.textColor = UIColor(hex: "C89F43")
+        textField.textColor = UIColor(hex: "915B5B")
         textField.backgroundColor = UIColor(hex: "F6F6F6")
         textField.borderStyle = .roundedRect
+        let iconImageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        iconImageView.tintColor = UIColor(hex: "#915B5B")
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+        
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 34, height: 24))
+        containerView.addSubview(iconImageView)
+        iconImageView.center = containerView.center
+        
+        textField.rightView = containerView
+        textField.rightViewMode = .always
         return textField
     }()
     
@@ -83,7 +94,7 @@ class AddBoardVC: UIViewController {
          addLabel,
          mapView,
          addButtton].forEach { view.addSubview($0) }
-    
+        
         label.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(25)
             make.top.equalToSuperview().offset(142)

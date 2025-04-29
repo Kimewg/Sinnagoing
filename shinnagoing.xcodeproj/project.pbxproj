@@ -12,7 +12,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C66D168B2DBE505F00C8EC28 /* shinnagoing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shinnagoing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C66D168B2DBE505F00C8EC28 /* shinnagoing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = shinnagoing.app; path = "/Users/rak/Desktop/iOS/킥고잉/Shinnago-ing/build/Debug-iphoneos/shinnagoing.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -53,16 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				C66D168D2DBE505F00C8EC28 /* shinnagoing */,
-				C66D168C2DBE505F00C8EC28 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		C66D168C2DBE505F00C8EC28 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C66D168B2DBE505F00C8EC28 /* shinnagoing.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -121,7 +112,7 @@
 				C66D16A92DBE550E00C8EC28 /* XCRemoteSwiftPackageReference "SPM-NMapsMap" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = C66D168C2DBE505F00C8EC28 /* Products */;
+			productRefGroup = C66D16822DBE505F00C8EC28;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
