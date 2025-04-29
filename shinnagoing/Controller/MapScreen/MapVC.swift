@@ -6,6 +6,7 @@ import CoreData
 class MapVC: UIViewController {
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     private var markers: [NMFMarker] = []
+    
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -36,18 +37,24 @@ class MapVC: UIViewController {
         return label
     }()
     
+    lazy var returnButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("반납하기", for: .normal)
+        button.backgroundColor = UIColor(red: 0.9, green: 0.4, blue: 0.4, alpha: 1)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.layer.cornerRadius = 10
+        button.addTarget(self, action: #selector(returnButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
         setupInitialCamera()
-        
-        //더미데이터 기본값 첫 앱 실행시 받아오도록.(기본더미데이터 중복 되지 않도록 설정해 둠)
-        DummyDataManager.shared.insertKickboardDummyData()
-        
         fetchDataMarkers()
-
+//        DummyDataManager.shared.insertKickboardDummyData()
     }
-    
     private func setupInitialCamera() {
         let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: 35.836, lng: 129.219)) // 경주
         mapView.moveCamera(cameraUpdate)
@@ -57,35 +64,42 @@ class MapVC: UIViewController {
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         do {
             let kickboards = try context.fetch(fetchRequest)
-            
-            // Core Data에서 가져온 데이터를 기반으로 마커를 지도에 추가
             for kickboard in kickboards {
-                let latitude = kickboard.latitude
-                let longitude = kickboard.longitude
-                addMarker(latitude: latitude, longitude: longitude)
+                addMarker(kickboard: kickboard)
             }
         } catch {
             print("Error fetching locations: \(error)")
         }
-        
     }
     
-    private func addMarker(latitude: Double, longitude: Double) {
+    private func addMarker(kickboard: KickboardEntity) {
         let marker = NMFMarker()
-        marker.position = NMGLatLng(lat: latitude, lng: longitude)
+        marker.position = NMGLatLng(lat: kickboard.latitude, lng: kickboard.longitude)
         marker.mapView = mapView
         markers.append(marker)
+        
+        // 마커에 킥보드 정보를 저장
+        marker.userInfo = [
+            "kickboardID": kickboard.kickboardID ?? "",
+            "battery": kickboard.battery
+        ]
+        
+        // 마커를 터치했을 때 모달 띄우기
+        marker.touchHandler = { [weak self] (overlay) -> Bool in
+            guard let self = self else { return true }
+            if let marker = overlay as? NMFMarker,
+               let userInfo = marker.userInfo as? [String: Any],
+               let battery = userInfo["battery"] as? Int16 {
+                presentModal(from: self, battery: battery)
+            }
+            return true
+        }
     }
     
     private func configureUI() {
         view.backgroundColor = .white
         
-        // UI 요소들을 뷰에 추가
-        [
-            logoLabel,
-            mapView,
-            searchTextField
-        ].forEach { view.addSubview($0) }
+        [logoLabel, mapView, searchTextField, returnButton].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
@@ -103,5 +117,22 @@ class MapVC: UIViewController {
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(40)
         }
+        returnButton.snp.makeConstraints {
+            $0.centerX.equalTo(view)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
+            $0.width.equalTo(200)
+            $0.height.equalTo(50)
+        }
+        returnButton.isHidden = true // 처음엔 숨겨놔야 함
+    }
+    
+    @objc func returnButtonTapped() {
+        let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
+        let confirm = UIAlertAction(title: "확인", style: .default) { _ in
+            print("반납 완료 처리!")
+            self.returnButton.isHidden = true // 반납 완료하면 다시 버튼 숨김
+        }
+        alert.addAction(confirm)
+        present(alert, animated: true)
     }
 }
