@@ -52,9 +52,8 @@ class MapVC: UIViewController {
         button.isHidden = true
         return button
     }()
-    
-    private let clientId = "네이버_클라이언트_ID"
-    private let clientSecret = "네이버_클라이언트_시크릿"
+    private let clientId = "ShRXCRqun5rU_NczZPRP"
+    private let clientSecret = "DAZxZOtKQl"
     
     // MARK: - Lifecycle
     
@@ -188,10 +187,6 @@ class MapVC: UIViewController {
         
         // URL 객체로 변환
         guard let url = URL(string: urlString) else { return }
-        
-        // 네이버 API 인증을 위한 클라이언트 ID와 시크릿 설정
-        let clientId = "ShRXCRqun5rU_NczZPRP"
-        let clientSecret = "DAZxZOtKQl"
         
         // URLRequest 객체 생성
         var request = URLRequest(url: url)
