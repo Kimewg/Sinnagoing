@@ -37,7 +37,7 @@ class LoginVC: UIViewController {
         let button = UIButton()
         button.setTitle("로그인", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(hex: "#C89F43")
+        button.backgroundColor = UIColor(hex: "#915B5B")
         button.layer.cornerRadius = 10
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         return button
@@ -46,7 +46,7 @@ class LoginVC: UIViewController {
     lazy var joinButton: UIButton = {
         let button = UIButton()
         button.setTitle("회원가입", for: .normal)
-        button.setTitleColor(.black, for: .normal)
+        button.setTitleColor(UIColor(hex: "#915B5B"), for: .normal)
         button.backgroundColor = .white
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
@@ -83,10 +83,10 @@ class LoginVC: UIViewController {
         }
         
         imageView.snp.makeConstraints { make in
-            make.bottom.equalTo(idTextField.snp.top).offset(-62)
+            make.bottom.equalTo(idTextField.snp.top).offset(-52)
             make.centerX.equalToSuperview()
-            make.height.equalTo(94)
-            make.width.equalTo(143)
+            make.height.equalTo(155)
+            make.width.equalTo(142)
         }
         
         loginButton.snp.makeConstraints { make in

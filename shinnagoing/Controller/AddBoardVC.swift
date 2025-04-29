@@ -12,7 +12,7 @@ class AddBoardVC: UIViewController {
     
     var label2: UILabel = {
         let label = UILabel()
-        label.text = "위도와 경도를 입력하여\n이 위치에 킥보드를 저장하세요!"
+        label.text = "주소를 입력하여\n이 위치에 킥보드를 저장하세요!"
         label.numberOfLines = 0 // 무제한 줄바꿈 가능!
         label.font = .boldSystemFont(ofSize: 15)
         label.textColor = UIColor(hex: "#9E9E9E")
@@ -34,9 +34,9 @@ class AddBoardVC: UIViewController {
         return add
     }()
     
-    var latitude: UITextField = {
+    var address: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "위도를 입력하세요"
+        textField.placeholder = "주소를 입력하세요"
         textField.text = ""
         textField.textColor = UIColor(hex: "C89F43")
         textField.backgroundColor = UIColor(hex: "F6F6F6")
@@ -44,15 +44,15 @@ class AddBoardVC: UIViewController {
         return textField
     }()
     
-    var longitude: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "경도를 입력하세요"
-        textField.text = ""
-        textField.textColor = UIColor(hex: "C89F43")
-        textField.backgroundColor = UIColor(hex: "F6F6F6")
-        textField.borderStyle = .roundedRect
-        return textField
-    }()
+//    var longitude: UITextField = {
+//        let textField = UITextField()
+//        textField.placeholder = "경도를 입력하세요"
+//        textField.text = ""
+//        textField.textColor = UIColor(hex: "C89F43")
+//        textField.backgroundColor = UIColor(hex: "F6F6F6")
+//        textField.borderStyle = .roundedRect
+//        return textField
+//    }()
     
     let separator: UIView = {
         let separator = UIView()
@@ -70,8 +70,8 @@ class AddBoardVC: UIViewController {
         [label,
          label2,
          addBoardImage,
-         latitude,
-         longitude,
+         address,
+//         longitude,
          separator,
          addLabel].forEach { view.addSubview($0) }
     
@@ -88,18 +88,18 @@ class AddBoardVC: UIViewController {
             make.leading.equalToSuperview().offset(20)
             make.size.equalTo(90)
         }
-        latitude.snp.makeConstraints { make in
+        address.snp.makeConstraints { make in
             make.leading.equalTo(addBoardImage.snp.trailing).offset(15)
-            make.top.equalTo(label2.snp.bottom).offset(36)
+            make.top.equalTo(label2.snp.bottom).offset(50)
             make.height.equalTo(44)
             make.width.equalTo(227)
         }
-        longitude.snp.makeConstraints { make in
-            make.leading.equalTo(addBoardImage.snp.trailing).offset(15)
-            make.top.equalTo(latitude.snp.bottom).offset(14)
-            make.height.equalTo(44)
-            make.width.equalTo(227)
-        }
+//        longitude.snp.makeConstraints { make in
+//            make.leading.equalTo(addBoardImage.snp.trailing).offset(15)
+//            make.top.equalTo(latitude.snp.bottom).offset(14)
+//            make.height.equalTo(44)
+//            make.width.equalTo(227)
+//        }
         separator.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(1)
             make.top.equalToSuperview().offset(98)

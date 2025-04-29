@@ -3,16 +3,45 @@ import UIKit
 
 class JoinVC: UIViewController {
     
+    var userNameLabel: UILabel = {
+        let label = UILabel()
+        label.text = "이름을 입력해주세요."
+        label.font = .boldSystemFont(ofSize: 18)
+        label.textColor = .black
+        return label
+    }()
+    var userNameTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "이름을 입력하세요."
+        textField.text = ""
+        textField.textColor = UIColor(hex: "915B5B")
+        textField.backgroundColor = UIColor(hex: "F5F5F5")
+        textField.borderStyle = .roundedRect
+        return textField
+    }()
+    var idLabel: UILabel = {
+        let label = UILabel()
+        label.text = "아이디를 입력해주세요."
+        label.font = .boldSystemFont(ofSize: 18)
+        label.textColor = .black
+        return label
+    }()
     var idTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "아이디를 입력하세요."
         textField.text = ""
-        textField.textColor = UIColor(hex: "C89F43")
-        textField.backgroundColor = UIColor(hex: "FFFFFF")
+        textField.textColor = UIColor(hex: "915B5B")
+        textField.backgroundColor = UIColor(hex: "F5F5F5")
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
+    var passWordLabel: UILabel = {
+        let label = UILabel()
+        label.text = "비밀번호를 입력해주세요."
+        label.font = .boldSystemFont(ofSize: 18)
+        label.textColor = .black
+        return label
+    }()
     var passWordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "비밀번호를 입력하세요."
@@ -20,67 +49,67 @@ class JoinVC: UIViewController {
         // 비밀번호를 입력할때 비밀번호가 안보이게 입력
         textField.isSecureTextEntry = true
         textField.textContentType = .username
-        textField.textColor = UIColor(hex: "C89F43")
-        textField.backgroundColor = UIColor(hex: "FFFFFF")
+        textField.textColor = UIColor(hex: "915B5B")
+        textField.backgroundColor = UIColor(hex: "F5F5F5")
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
+    var secondPasswordLabel: UILabel = {
+        let label = UILabel()
+        label.text = "비밀번호를 한번 더 입력하세요."
+        label.font = .boldSystemFont(ofSize: 18)
+        label.textColor = .black
+        return label
+    }()
     var secondPasswordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "비밀번호를 한번 더 입력하세요."
         textField.text = ""
         textField.isSecureTextEntry = true
         textField.textContentType = .username
-        textField.textColor = UIColor(hex: "C89F43")
-        textField.backgroundColor = .white
+        textField.textColor = UIColor(hex: "915B5B")
+        textField.backgroundColor = UIColor(hex: "F5F5F5")
         textField.borderStyle = .roundedRect
         return textField
     }()
-    
-    var imageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(named: "joinLogo")
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-        return imageView
-    }()
-    
     var joinButton: UIButton = {
         let button = UIButton()
         button.setTitle("회원가입", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 10
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        button.backgroundColor = UIColor(hex: "C89F43")
+        button.backgroundColor = UIColor(hex: "915B5B")
         return button
     }()
-    
     let separator: UIView = {
         let separator = UIView()
         separator.backgroundColor = UIColor(hex: "CFC8C8")
         return separator
     }()
-    
-    let kakaoImage: UIImageView = {
+    var socialLabel: UILabel = {
+        let label = UILabel()
+        label.text = "간편로그인"
+        label.font = .boldSystemFont(ofSize: 14)
+        label.textColor = UIColor(hex: "C9C9C9")
+        return label
+    }()
+    var kakaoImage: UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "kakao")
         image.contentMode = .scaleAspectFit
         image.clipsToBounds = true
         return image
     }()
-    
-    let naver: UIImageView = {
+    var spartaImage: UIImageView = {
         let image = UIImageView()
-        image.image = UIImage(named: "naver")
+        image.image = UIImage(named: "sparta")
         image.contentMode = .scaleAspectFit
         image.clipsToBounds = true
         return image
     }()
-    
-    let sparta: UIImageView = {
+    var naverImage: UIImageView = {
         let image = UIImageView()
-        image.image = UIImage(named: "sparta")
+        image.image = UIImage(named: "naver")
         image.contentMode = .scaleAspectFit
         image.clipsToBounds = true
         return image
@@ -99,66 +128,94 @@ class JoinVC: UIViewController {
     
     func configure() {
         view.backgroundColor = .white
-        [ idTextField,
+        [ userNameLabel,
+          userNameTextField,
+          idLabel,
+          idTextField,
+          passWordLabel,
           passWordTextField,
+          secondPasswordLabel,
           secondPasswordTextField,
-          imageView,
           joinButton,
           separator,
-          naver,
+          socialLabel,
           kakaoImage,
-          sparta].forEach { view.addSubview($0) }
+          spartaImage,
+          naverImage].forEach { view.addSubview($0) }
         
+        userNameLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(40)
+            make.top.equalToSuperview().offset(139)
+            make.width.equalTo(159)
+        }
+        userNameTextField.snp.makeConstraints { make in
+            make.trailing.leading.equalToSuperview().inset(40)
+            make.top.equalTo(userNameLabel.snp.bottom).offset(2)
+            make.height.equalTo(40)
+        }
+        idLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(40)
+            make.top.equalTo(userNameTextField.snp.bottom).offset(16)
+            make.width.equalTo(175)
+        }
         idTextField.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalToSuperview().offset(164)
-            make.height.equalTo(55)
+            make.top.equalTo(idLabel.snp.bottom).offset(2)
+            make.height.equalTo(40)
+        }
+        passWordLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(40)
+            make.top.equalTo(idTextField.snp.bottom).offset(16)
+            make.width.equalTo(192)
         }
         passWordTextField.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalTo(idTextField.snp.bottom).offset(12)
-            make.height.equalTo(55)
+            make.top.equalTo(passWordLabel.snp.bottom).offset(2)
+            make.height.equalTo(40)
+        }
+        secondPasswordLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().offset(40)
+            make.top.equalTo(passWordTextField.snp.bottom).offset(16)
+            make.width.equalTo(251)
         }
         secondPasswordTextField.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalTo(passWordTextField.snp.bottom).offset(12)
-            make.height.equalTo(55)
+            make.top.equalTo(secondPasswordLabel.snp.bottom).offset(2)
+            make.height.equalTo(40)
         }
-        imageView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(31)
-            make.trailing.equalToSuperview().inset(198)
-            make.bottom.equalTo(idTextField.snp.top).offset(-9)
-            make.height.equalTo(53)
-            make.width.equalTo(173)
-        }
+        
         joinButton.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(secondPasswordTextField.snp.bottom).offset(32)
+            make.top.equalTo(secondPasswordTextField.snp.bottom).offset(41)
             make.width.equalTo(254)
             make.height.equalTo(55)
         }
         separator.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(31)
-            make.top.equalTo(joinButton.snp.bottom).offset(34)
+            make.top.equalTo(joinButton.snp.bottom).offset(51)
             make.height.equalTo(1)
         }
-        naver.snp.makeConstraints { make in
-            make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalTo(separator.snp.bottom).offset(72)
-            make.width.equalTo(55)
+        socialLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(separator.snp.bottom).offset(25)
+            make.width.equalTo(72)
+            make.height.equalTo(18)
         }
         kakaoImage.snp.makeConstraints { make in
-            make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalTo(naver.snp.bottom).offset(24)
-            make.width.equalTo(55)
+            make.leading.equalTo(90)
+            make.top.equalTo(separator.snp.bottom).offset(64)
+            make.size.equalTo(48)
         }
-        sparta.snp.makeConstraints { make in
-            make.trailing.leading.equalToSuperview().inset(40)
-            make.top.equalTo(kakaoImage.snp.bottom).offset(24)
-            make.width.equalTo(55)
+        spartaImage.snp.makeConstraints { make in
+            make.leading.equalTo(kakaoImage.snp.trailing).offset(33)
+            make.top.equalTo(separator.snp.bottom).offset(71)
+            make.width.equalTo(60)
+            make.height.equalTo(32)
         }
-        
-        
-
+        naverImage.snp.makeConstraints { make in
+            make.leading.equalTo(spartaImage.snp.trailing).offset(33)
+            make.top.equalTo(separator.snp.bottom).offset(64)
+            make.size.equalTo(48)
+        }
     }
 }

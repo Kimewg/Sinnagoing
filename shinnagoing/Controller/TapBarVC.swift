@@ -39,11 +39,12 @@ class TabBarVC: UITabBarController {
     }
 
     private func setupTabBarAppearance() {
-        tabBar.backgroundColor = .white
         tabBar.tintColor = UIColor(hex: "#C89F43") // 선택된 탭 아이템 색상
         tabBar.unselectedItemTintColor = .gray // 선택 안된 탭 아이템 색상
-        tabBar.isTranslucent = false
-        tabBar.layer.shadowOpacity = 0 // 그림자 없애기
+        tabBar.isTranslucent = true
+        tabBar.backgroundColor = UIColor.white.withAlphaComponent(0.7) // 밝은 반투명 배경
+        tabBar.backgroundImage = UIImage()
+        tabBar.shadowImage = UIImage()
     }
 }
 class CustomTabBar: UITabBar {
@@ -54,3 +55,8 @@ class CustomTabBar: UITabBar {
    }
 }
 
+
+
+//1. 이미지 배치,  주소 입력창 가운데 X
+//2. 저장 뷰컨 지도 깔기 , 지도위에 뷰를 추가 *허전함
+//3. 마이페이지에서 라벨을 위로 빼기
