@@ -18,7 +18,7 @@ class LoginVC: UIViewController {
         textField.placeholder = "비밀번호를 입력하세요."
         textField.text = ""
         textField.isSecureTextEntry = true
-        textField.textContentType = .username
+        textField.textContentType = .password
         textField.textColor = UIColor(hex: "C89F43")
         textField.backgroundColor = UIColor(hex: "F6F6F6")
         textField.borderStyle = .roundedRect
@@ -37,7 +37,7 @@ class LoginVC: UIViewController {
         let button = UIButton()
         button.setTitle("로그인", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(hex: "C89F43")
+        button.backgroundColor = UIColor(hex: "#C89F43")
         button.layer.cornerRadius = 10
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         return button
@@ -72,7 +72,6 @@ class LoginVC: UIViewController {
         idTextField.snp.makeConstraints { make in
             make.trailing.leading.equalToSuperview().inset(40)
             make.top.equalToSuperview().offset(393)
-            make.bottom.equalToSuperview().inset(437)
             make.height.equalTo(44)
         }
         
