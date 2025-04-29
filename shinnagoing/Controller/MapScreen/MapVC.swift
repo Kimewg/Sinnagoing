@@ -241,7 +241,7 @@ class MapVC: UIViewController {
             }
         }.resume()  // 비동기 요청 시작
     }
-    
+    // MARK: search map Camera
     // 주소를 위도와 경도로 변환하여 지도 위치를 이동시키는 함수
     private func geocodeAddress(_ address: String) {
         let geocoder = CLGeocoder()
