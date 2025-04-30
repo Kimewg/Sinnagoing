@@ -1,6 +1,9 @@
 import Foundation
 
 struct SearchResult: Decodable {
+    let total: Int
+    let start: Int
+    let display: Int
     let items: [Location]
 }
 

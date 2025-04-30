@@ -17,32 +17,40 @@ class MapVC: UIViewController {
         return mapView
     }()
     
-    private let searchTextField: UITextField = {
+    lazy var searchTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "어디로 가시나요?"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = .white
-        textField.textColor = UIColor(red: 0.632, green: 0.604, blue: 0.604, alpha: 1)
+        textField.textColor = UIColor(hex: "#915B5B")
         textField.layer.borderColor = UIColor(red: 0.523, green: 0.523, blue: 0.523, alpha: 1).cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 10
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.addTarget(self, action: #selector(focusSearchField), for: .touchUpInside)
+        let iconImageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        iconImageView.tintColor = UIColor(hex: "#915B5B")
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+        
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 34, height: 24))
+        containerView.addSubview(iconImageView)
+        iconImageView.center = containerView.center
+        
+        textField.rightView = containerView
+        textField.rightViewMode = .always
         return textField
     }()
     
-    private let logoLabel: UILabel = {
-        let label = UILabel()
-        label.text = "SINNAGOING"
-        label.textColor = UIColor(red: 0.784, green: 0.624, blue: 0.263, alpha: 1)
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.textAlignment = .center
-        label.backgroundColor = .white
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private let logoLabel: UIImageView = {
+        let image = UIImageView()
+        image.image = UIImage(named: "stringLogo")
+        image.contentMode = .scaleAspectFit
+        image.clipsToBounds = true
+        return image
     }()
     
-    let returnButton: UIButton = {
+    lazy var returnButton: UIButton = {
         let button = UIButton()
         button.setTitle("반납하기", for: .normal)
         button.backgroundColor = UIColor(red: 0.9, green: 0.4, blue: 0.4, alpha: 1)
@@ -65,6 +73,11 @@ class MapVC: UIViewController {
         DummyDataManager.shared.insertKickboardDummyData()
         fetchDataMarkers()
         searchTextField.delegate = self
+        
+        // 키보드가 자동으로 올라오도록 설정
+        DispatchQueue.main.async {
+            self.searchTextField.becomeFirstResponder()
+        }
     }
     
     // MARK: - UI Setup
@@ -74,12 +87,14 @@ class MapVC: UIViewController {
         [logoLabel, mapView, searchTextField, returnButton].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.height.equalTo(41)
+            $0.width.equalTo(164)
             $0.centerX.equalToSuperview()
+            $0.top.equalToSuperview().offset(63)
         }
         
         mapView.snp.makeConstraints {
-            $0.top.equalTo(logoLabel.snp.bottom).offset(20)
+            $0.top.equalTo(logoLabel.snp.bottom).offset(8)
             $0.leading.trailing.bottom.equalToSuperview()
         }
         
@@ -111,16 +126,15 @@ class MapVC: UIViewController {
     private func fetchDataMarkers() {
         // KickboardEntity에 대한 FetchRequest 생성
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        // 조건걸어주기(isRentaled이 false인 데이터만)
+        // Core Data는 Bool 타입 필터링할 때 NSNumber로 변환해야한다(Swift에서는 true/false지만, 내부적으로 NSNumber를 쓰기때문)
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
         
         do {
             // 데이터베이스에서 킥보드 데이터 가져오기
             let kickboards = try context.fetch(fetchRequest)
             // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach {
-                if !$0.isRentaled {
-                    addMarker(kickboard: $0)
-                }
-            }
+            kickboards.forEach { addMarker(kickboard: $0) }
         } catch {
             // 데이터 가져오기 실패 시 에러 출력
             print("Error fetching locations: \(error)")
@@ -152,32 +166,69 @@ class MapVC: UIViewController {
             // 터치된 overlay가 NMFMarker인지 확인하고, userInfo에서 배터리 상태를 가져옴
             guard let marker = overlay as? NMFMarker,
                   let userInfo = marker.userInfo as? [String: Any],
-                  let battery = userInfo["battery"] as? Int16 else { return true }
+                  let battery = userInfo["battery"] as? Int16,
+                  let kickboardID = userInfo["kickboardID"] as? String else { return true }
             
             // 배터리 정보를 보여줄 ModalVC 생성
             let modalVC = ModalVC()
             modalVC.battery = battery  // 배터리 정보를 ModalVC에 전달
             modalVC.mapVC = self  // 현재 ViewController를 ModalVC에 전달
+            modalVC.kickboardID = kickboardID
             // ModalVC를 화면에 표시
             self.present(modalVC, animated: true)
             return true
         }
+    }
+    // 마커 리로드 함수
+    func reloadMarkers() {
+        // 현재 마커들 지도에서 지우기
+        for marker in markers {
+            marker.mapView = nil
+        }
+        markers.removeAll()
+        
+        // 새로 fetch해서 마커 추가
+        fetchDataMarkers()
     }
     
     
     // MARK: - Actions
     
     @objc private func returnButtonTapped() {
-        let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
-            self.returnButton.isHidden = true
-        })
-        present(alert, animated: true)
+        let context = CoreDataManager.shared.context
+        
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: true))
+        
+        do {
+            if let kickboard = try context.fetch(fetchRequest).first {
+                
+                
+                kickboard.isRentaled = false
+                kickboard.battery -= 8
+                //임시용
+                kickboard.latitude -= 0.001
+                kickboard.longitude += 0.001
+                
+                try context.save()
+                
+                let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+                    self.returnButton.isHidden = true
+                    
+                })
+                present(alert, animated: true)
+                
+                reloadMarkers()
+            }
+        } catch {
+            print("반납 처리 중 오류")
+        }
     }
     @objc func focusSearchField() {
         searchTextField.becomeFirstResponder()
     }
-    
     // MARK: - Naver API
     
     // 주어진 query를 바탕으로 네이버 API를 호출하여 장소를 검색하는 함수
@@ -227,7 +278,7 @@ class MapVC: UIViewController {
                         self.presentAlert(title: "검색 결과 없음", message: "장소를 찾을 수 없습니다.")
                     }
                 } else {
-                    // 검색 결과가 있으면 첫 번째(title) 항목을 처리
+                    // 검색 결과가 있으면 첫 번째 항목을 처리
                     let roadAddress = result.items.first?.roadAddress ?? ""
                     let address = result.items.first?.address ?? ""
                     if roadAddress.count > 0 {
