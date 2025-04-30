@@ -2,10 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-<!--	<key>NMFClientId</key>-->
-<!--	<string>j7mhlrus1e</string>-->
-<!--    <key>NMFBundleId</key>-->
-<!--    <string>eunsn.shinnagoing</string>-->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>앱이 사용자 위치에 접근하려면 권한이 필요합니다.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

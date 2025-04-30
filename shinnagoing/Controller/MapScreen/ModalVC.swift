@@ -13,7 +13,7 @@ class ModalVC: UIViewController {
         super.viewDidLoad()
         setupUI()
     }
-    
+        
     private func setupUI() {
         view.backgroundColor = .white
         modalPresentationStyle = .pageSheet
@@ -90,7 +90,7 @@ class ModalVC: UIViewController {
                 return UIImage(named: "battery.0")  // 예외처리 이미지
             }
         }
-        
+       
         // --- 오토레이아웃 ---
         batteryLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
@@ -159,10 +159,10 @@ class ModalVC: UIViewController {
         do {
             if let kickboard = try context.fetch(fetchRequest).first {
                 kickboard.isRentaled = true
-                
+                let userID = UserDefaults.standard.string(forKey: "userID") ?? ""
                 let rental = RentalHistoryEntity(context: context)
                 rental.kickboardID = selectedID
-                rental.userID = "userID"
+                rental.userID = userID
                 rental.rentalDate = Date()
                 rental.returnDate = nil
                 
