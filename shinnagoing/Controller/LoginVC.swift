@@ -33,13 +33,14 @@ class LoginVC: UIViewController {
         return imageView
     }()
     
-    var loginButton: UIButton = {
+   lazy var loginButton: UIButton = {
         let button = UIButton()
         button.setTitle("로그인", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = UIColor(hex: "#915B5B")
         button.layer.cornerRadius = 10
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+       button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -51,7 +52,7 @@ class LoginVC: UIViewController {
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchDown)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -59,6 +60,7 @@ class LoginVC: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .white
+        
         configure()
     }
     
@@ -118,8 +120,45 @@ class LoginVC: UIViewController {
         }
         
     }
+    @objc func loginButtonTapped() {
+        guard let id = idTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !id.isEmpty,
+              let password = passWordTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !password.isEmpty else {
+            showAlert(title: "오류", message: "아이디와 비밀번호를 모두 입력해주세요.")
+            return
+        }
+        
+        // 저장된 회원 리스트 가져오기
+        let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
+        
+        // 입력한 정보와 일치하는 회원이 있는지 확인
+        if users.contains(where: { $0["id"] == id && $0["password"] == password }) {
+            print("로그인 성공")
+            moveToTabBar()
+        } else {
+            showAlert(title: "로그인 실패", message: "아이디 또는 비밀번호가 일치하지 않습니다.")
+        }
+    }
+
+    func moveToTabBar() {
+        let tabBarVC = TabBarVC()
+
+        // 앱의 윈도우 루트를 TabBarVC로 교체
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate {
+
+            sceneDelegate.window?.rootViewController = tabBarVC
+            sceneDelegate.window?.makeKeyAndVisible()
+        }
+    }
+
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+
     @objc func buttonTapped() {
-        print("Tap")
+        print("클릭됨")
         let vc = JoinVC()
         self.navigationItem.backButtonTitle = ""
         navigationController?.pushViewController(vc, animated: true)

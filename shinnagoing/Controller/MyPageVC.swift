@@ -107,11 +107,22 @@ class MyPageVC: UIViewController {
         view.backgroundColor = .white
         useTableView.delegate = self
         useTableView.dataSource = self
+        logout.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         configure()
         updateImageBasedOnRentalStatus()
         debugKickboardData()
     }
     
+    @objc func logoutTapped() {
+        let loginVC = LoginVC()
+        let navVC = UINavigationController(rootViewController: loginVC)
+
+        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        if let window = windowScene?.windows.first {
+            window.rootViewController = navVC
+            window.makeKeyAndVisible()
+        }
+    }
     func configure() {
         [
             myPageLabel,

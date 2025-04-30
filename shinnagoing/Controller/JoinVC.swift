@@ -119,6 +119,7 @@ class JoinVC: UIViewController {
         super.viewDidLoad()
         configure()
         navigationItem()
+        joinButton.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
     }
     
     func navigationItem() {
@@ -218,4 +219,36 @@ class JoinVC: UIViewController {
             make.size.equalTo(48)
         }
     }
-}
+    @objc func joinButtonTapped() {
+            guard let name = userNameTextField.text, !name.isEmpty,
+                  let id = idTextField.text, !id.isEmpty,
+                  let password = passWordTextField.text, !password.isEmpty,
+                  let confirmPassword = secondPasswordTextField.text, !confirmPassword.isEmpty else {
+                showAlert(title: "오류", message: "이름, 아이디 또는 비밀번호가 비어있습니다.")
+                return
+            }
+            
+            guard password == confirmPassword else {
+                showAlert(title: "비밀번호 불일치", message: "비밀번호가 일치하지 않습니다.")
+                return
+            }
+            
+            // 기존 회원 리스트 가져오기
+            var users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
+
+            // 새 회원 추가
+        let newUser = ["name": name, "id": id, "password": password]
+            users.append(newUser)
+
+            // 저장
+            UserDefaults.standard.set(users, forKey: "users")
+
+            print("회원가입 성공: \(name) ( \(id))")
+            navigationController?.popViewController(animated: true)
+        }
+        func showAlert(title: String, message: String) {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
+            present(alert, animated: true)
+        }
+    }
