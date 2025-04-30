@@ -8,6 +8,9 @@ class MyPageVC: UIViewController {
     
     let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
     
+    var rentalHistory: [String] = ["여기는 빌렸던 킥보드에용","울트라캡숑간지킥보드", "타락파워킥보드", "앞에 비켜라 지나간다 킥볻"]
+    
+    var myRegisteredBoards: [String] = ["여기는 등록한 킥보드에용","울트라캡숑간지킥보드", "타락파워킥보드" , "T없이 맑은 킥보드"]
     
     
     var myPageLabel: UILabel = {
@@ -66,6 +69,7 @@ class MyPageVC: UIViewController {
         let tableView = UITableView()
         tableView.backgroundColor = UIColor(hex: "#F5F5F5")
         tableView.layer.cornerRadius = 10
+        tableView.showsVerticalScrollIndicator = false
         return tableView
     }()
     
@@ -73,6 +77,7 @@ class MyPageVC: UIViewController {
         let tableView = UITableView()
         tableView.backgroundColor = UIColor(hex: "#F5F5F5")
         tableView.layer.cornerRadius = 10
+        tableView.showsVerticalScrollIndicator = false
         return tableView
     }()
     
@@ -107,10 +112,14 @@ class MyPageVC: UIViewController {
         view.backgroundColor = .white
         useTableView.delegate = self
         useTableView.dataSource = self
+        addBoardTableView.delegate = self
+        addBoardTableView.dataSource = self
         logout.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         configure()
         debugKickboardData()
         reloadInputViews()
+        useTableView.register(KickboardTableViewCell.self, forCellReuseIdentifier: KickboardTableViewCell.identifier)
+        addBoardTableView.register(KickboardTableViewCell.self, forCellReuseIdentifier: KickboardTableViewCell.identifier)
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -221,6 +230,16 @@ class MyPageVC: UIViewController {
             make.width.equalTo(128)
             make.height.equalTo(33)
         }
+        
+        useTableView.separatorStyle = .none
+        useTableView.rowHeight = UITableView.automaticDimension
+        useTableView.estimatedRowHeight = 60
+        useTableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 8, right: 0)
+
+        addBoardTableView.separatorStyle = .none
+        addBoardTableView.rowHeight = UITableView.automaticDimension
+        addBoardTableView.estimatedRowHeight = 60
+        addBoardTableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 8, right: 0)
     }
     
     func debugKickboardData() {
@@ -266,16 +285,26 @@ class MyPageVC: UIViewController {
 extension MyPageVC: UITableViewDataSource {
     //섹션 개수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        0
+        if tableView == useTableView {
+            return rentalHistory.count
+        } else {
+            return myRegisteredBoards.count
+        }
     }
     //셀안의 내용
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return UITableViewCell()
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: KickboardTableViewCell.identifier, for: indexPath) as? KickboardTableViewCell else {
+                return UITableViewCell()
+            }
+
+            let text = tableView == useTableView ? rentalHistory[indexPath.row] : myRegisteredBoards[indexPath.row]
+            cell.contentLabel.text = text
+            return cell
     }
 }
 //섹션의 높이
 extension MyPageVC: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        0
+        return UITableView.automaticDimension
     }
 }
