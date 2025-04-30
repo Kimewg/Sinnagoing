@@ -1,9 +1,13 @@
 import UIKit
+import CoreData
 import SnapKit
+import CoreData
 
 class ModalVC: UIViewController {
+    let context = CoreDataManager.shared.context
     var battery: Int16 = 0
     var mapVC: MapVC?
+    var kickboardID: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,8 +29,11 @@ class ModalVC: UIViewController {
         batteryLabel.textColor = .black
         batteryLabel.textAlignment = .center
         
-        let batteryImageView = UIImageView(image: UIImage(named: "battery"))
+        let batteryImageView = UIImageView()
+        batteryImageView.image = imageForBatteryLevel(Int(battery))
         batteryImageView.contentMode = .scaleAspectFit
+        batteryImageView.tintColor = UIColor(hex: "915B5B")
+
 
         let kickBoardImageView = UIImageView(image: UIImage(named: "kickBoard"))
         kickBoardImageView.contentMode = .scaleAspectFit
@@ -71,6 +78,19 @@ class ModalVC: UIViewController {
             rentButton
         ].forEach { view.addSubview($0) }
         
+        func imageForBatteryLevel(_ battery: Int) -> UIImage? {
+            switch battery {
+            case 70...100:
+                return UIImage(systemName: "battery.100")  // 🔋 3칸 이미지
+            case 30...69:
+                return UIImage(systemName: "battery.50")  // 🔋 2칸 이미지
+            case 0...29:
+                return UIImage(systemName: "battery.25")  // 🔋 1칸 이미지
+            default:
+                return UIImage(named: "battery.0")  // 예외처리 이미지
+            }
+        }
+        
         // --- 오토레이아웃 ---
         batteryLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
@@ -79,9 +99,9 @@ class ModalVC: UIViewController {
         
         batteryImageView.snp.makeConstraints {
             $0.centerY.equalTo(batteryLabel)
-            $0.leading.equalTo(batteryLabel.snp.trailing).offset(8)
-            $0.height.equalTo(29)
-            $0.width.equalTo(55)
+            $0.leading.equalTo(batteryLabel.snp.trailing).offset(3)
+            $0.width.equalTo(50)
+            $0.height.equalTo(30)
         }
         
         kickBoardImageView.snp.makeConstraints { make in
@@ -123,17 +143,47 @@ class ModalVC: UIViewController {
     }
     
     @objc private func rentButtonTapped() {
-        let alert = UIAlertController(title: "대여가 완료되었습니다.", message: nil, preferredStyle: .alert)
         
-        let confirmAction = UIAlertAction(title: "확인", style: .default) { _ in
-            print("대여가 완료되었습니다.")
-            self.dismiss(animated: true) {
-                self.mapVC?.returnButton.isHidden = false
+        guard let mapVC = mapVC else { return }
+        guard let selectedID = self.kickboardID else { return }
+        //싱글톤 사용하지 않았을 경우에는 다음과 같이 호출.
+        //let context = (UIApplication.shared.delegate as! Appdelegate).persistentContainer.viewContext
+        
+        // context 준비
+        let context = CoreDataManager.shared.context
+        // 어떤 엔티티를 가져올지 요청
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        
+        // 조건 설정 (위에서 선언한 선택한 킥보드아이디와 같은 정보를 코어데이터에서 가져오기)
+        fetchRequest.predicate = NSPredicate(format: "kickboardID == %@", selectedID)
+        do {
+            if let kickboard = try context.fetch(fetchRequest).first {
+                kickboard.isRentaled = true
+                
+                let rental = RentalHistoryEntity(context: context)
+                rental.kickboardID = selectedID
+                rental.userID = "userID"
+                rental.rentalDate = Date()
+                rental.returnDate = nil
+                
+                try context.save()
+                print("대여 완료")
+                
+                let alert = UIAlertController(title: "대여 완료", message: nil, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+                    self.dismiss(animated: true) {
+                        mapVC.returnButton.isHidden = false
+                        mapVC.reloadMarkers()
+                    }
+                })
+                self.present(alert, animated: true)
+                
+            } else {
+                print("해당하는 킥보드를 찾을 수 없음")
             }
+        } catch {
+            print("대여 처리 중 오류: \(error)")
         }
-        
-        alert.addAction(confirmAction)
-        present(alert, animated: true, completion: nil)
     }
 }
 

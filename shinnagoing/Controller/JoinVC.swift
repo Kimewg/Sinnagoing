@@ -90,7 +90,7 @@ class JoinVC: UIViewController {
         let label = UILabel()
         label.text = "간편로그인"
         label.font = .boldSystemFont(ofSize: 14)
-        label.textColor = UIColor(hex: "C9C9C9")
+        label.textColor = UIColor(hex: "888888")
         return label
     }()
     var kakaoImage: UIImageView = {

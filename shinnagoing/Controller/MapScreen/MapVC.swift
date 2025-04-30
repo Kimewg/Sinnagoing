@@ -7,10 +7,10 @@ import CoreLocation
 class MapVC: UIViewController {
     
     // MARK: - Properties
-    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     private var markers: [NMFMarker] = []
-    
+    private let clientId = "ShRXCRqun5rU_NczZPRP"
+    private let clientSecret = "DAZxZOtKQl"
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -19,7 +19,7 @@ class MapVC: UIViewController {
     
     lazy var searchTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "어디로 가시나요?"
+        textField.placeholder = "어디로 가신라요?"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = .white
         textField.textColor = UIColor(hex: "#915B5B")
@@ -61,8 +61,19 @@ class MapVC: UIViewController {
         button.isHidden = true
         return button
     }()
-    private let clientId = "ShRXCRqun5rU_NczZPRP"
-    private let clientSecret = "DAZxZOtKQl"
+    lazy var myLocationButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "locationIcon"), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFill
+        button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(myLocationButtonTapped), for: .touchUpInside)
+        
+        button.layer.shadowColor = UIColor(hex: "915B5B").cgColor
+        button.layer.shadowOpacity = 0.5
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        return button
+    }()
     
     // MARK: - Lifecycle
     
@@ -73,13 +84,18 @@ class MapVC: UIViewController {
         DummyDataManager.shared.insertKickboardDummyData()
         fetchDataMarkers()
         searchTextField.delegate = self
+        
+        // 키보드가 자동으로 올라오도록 설정
+        DispatchQueue.main.async {
+            self.searchTextField.becomeFirstResponder()
+        }
     }
     
     // MARK: - UI Setup
     
     private func configureUI() {
         view.backgroundColor = .white
-        [logoLabel, mapView, searchTextField, returnButton].forEach { view.addSubview($0) }
+        [logoLabel, mapView, searchTextField, returnButton, myLocationButton].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
             $0.height.equalTo(41)
@@ -105,6 +121,12 @@ class MapVC: UIViewController {
             $0.width.equalTo(200)
             $0.height.equalTo(50)
         }
+        myLocationButton.snp.makeConstraints {
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-30)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.width.equalTo(50)
+            $0.height.equalTo(50)
+        }
     }
     
     // MARK: - Map & Marker Logic
@@ -121,6 +143,9 @@ class MapVC: UIViewController {
     private func fetchDataMarkers() {
         // KickboardEntity에 대한 FetchRequest 생성
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        // 조건걸어주기(isRentaled이 false인 데이터만)
+        // Core Data는 Bool 타입 필터링할 때 NSNumber로 변환해야한다(Swift에서는 true/false지만, 내부적으로 NSNumber를 쓰기때문)
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
         
         do {
             // 데이터베이스에서 킥보드 데이터 가져오기
@@ -162,32 +187,72 @@ class MapVC: UIViewController {
             // 터치된 overlay가 NMFMarker인지 확인하고, userInfo에서 배터리 상태를 가져옴
             guard let marker = overlay as? NMFMarker,
                   let userInfo = marker.userInfo as? [String: Any],
-                  let battery = userInfo["battery"] as? Int16 else { return true }
+                  let battery = userInfo["battery"] as? Int16,
+                  let kickboardID = userInfo["kickboardID"] as? String else { return true }
             
             // 배터리 정보를 보여줄 ModalVC 생성
             let modalVC = ModalVC()
             modalVC.battery = battery  // 배터리 정보를 ModalVC에 전달
             modalVC.mapVC = self  // 현재 ViewController를 ModalVC에 전달
+            modalVC.kickboardID = kickboardID
             // ModalVC를 화면에 표시
             self.present(modalVC, animated: true)
             return true
         }
+    }
+    // 마커 리로드 함수
+    func reloadMarkers() {
+        // 현재 마커들 지도에서 지우기
+        for marker in markers {
+            marker.mapView = nil
+        }
+        markers.removeAll()
+        
+        // 새로 fetch해서 마커 추가
+        fetchDataMarkers()
     }
     
     
     // MARK: - Actions
     
     @objc private func returnButtonTapped() {
-        let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
-            self.returnButton.isHidden = true
-        })
-        present(alert, animated: true)
+        let context = CoreDataManager.shared.context
+        
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: true))
+        
+        do {
+            if let kickboard = try context.fetch(fetchRequest).first {
+                
+                
+                kickboard.isRentaled = false
+                kickboard.battery -= 8
+                //임시용
+                kickboard.latitude -= 0.001
+                kickboard.longitude += 0.001
+                
+                try context.save()
+                
+                let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+                    self.returnButton.isHidden = true
+                    
+                })
+                present(alert, animated: true)
+                
+                reloadMarkers()
+            }
+        } catch {
+            print("반납 처리 중 오류")
+        }
     }
     @objc func focusSearchField() {
         searchTextField.becomeFirstResponder()
     }
-    
+    @objc func myLocationButtonTapped() {
+        
+    }
     // MARK: - Naver API
     
     // 주어진 query를 바탕으로 네이버 API를 호출하여 장소를 검색하는 함수
