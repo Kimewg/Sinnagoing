@@ -9,11 +9,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        
+
+        // window 에게 루트 뷰 지정.
         if let window = window {
             window.rootViewController = TabBarVC()
             window.makeKeyAndVisible()
         }
+//        let loginVC = LoginVC()
+//        window?.rootViewController = loginVC
+//        window?.makeKeyAndVisible()
     }
 //        let loginVC = LoginVC()
 //        window?.rootViewController = UINavigationController(rootViewController: loginVC)

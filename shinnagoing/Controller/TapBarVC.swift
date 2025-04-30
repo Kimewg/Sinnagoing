@@ -7,7 +7,7 @@ class TabBarVC: UITabBarController {
         configureTabBar()
         setupTabBarAppearance()
     }
-
+    
     private func configureTabBar() {
         // Map
         let mapVC = MapVC()
@@ -16,7 +16,7 @@ class TabBarVC: UITabBarController {
             title: "지도",
             image: UIImage(systemName: "map"),
             selectedImage: UIImage(systemName: "map.fill"))
-
+        
         // Second
         let addBoardVC = AddBoardVC()
         let nav2 = UINavigationController(rootViewController: addBoardVC)
@@ -25,7 +25,7 @@ class TabBarVC: UITabBarController {
             image: UIImage(systemName: "scooter"),
             selectedImage: UIImage(systemName: "scooter.fill")
         )
-
+        
         // Third
         let myPageVC = MyPageVC()
         let nav3 = UINavigationController(rootViewController: myPageVC)
@@ -37,7 +37,7 @@ class TabBarVC: UITabBarController {
         )
         viewControllers = [nav1, nav2, nav3]
     }
-
+    
     private func setupTabBarAppearance() {
         tabBar.tintColor = UIColor(hex: "915B5B") // 선택된 탭 아이템 색상
         tabBar.unselectedItemTintColor = .gray // 선택 안된 탭 아이템 색상
@@ -49,10 +49,10 @@ class TabBarVC: UITabBarController {
 }
 class CustomTabBar: UITabBar {
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-    var sizeThatFits = super.sizeThatFits(size)
-    sizeThatFits.height = 85 // 원하는 길이
-    return sizeThatFits
-   }
+        var sizeThatFits = super.sizeThatFits(size)
+        sizeThatFits.height = 85 // 원하는 길이
+        return sizeThatFits
+    }
 }
 
 
