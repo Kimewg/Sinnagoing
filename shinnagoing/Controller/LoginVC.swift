@@ -69,7 +69,7 @@ class LoginVC: UIViewController {
         view.bringSubviewToFront(splashView)
         
         // 현재에서 2초 후에 dismiss되게 세팅
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             self.dismissSplashView()
         }
     }

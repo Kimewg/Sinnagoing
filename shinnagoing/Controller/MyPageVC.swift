@@ -7,7 +7,7 @@ class MyPageVC: UIViewController {
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-
+    
     
     
     var myPageLabel: UILabel = {
@@ -32,7 +32,7 @@ class MyPageVC: UIViewController {
     
     lazy var useImageView: UIImageView = {
         let imageView = UIImageView()
-//        imageView.image = imageForUseBoard(isRental)
+        //        imageView.image = imageForUseBoard(isRental)
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
@@ -49,16 +49,7 @@ class MyPageVC: UIViewController {
         let label = UILabel()
         label.text = "천마논과 안전운전 하세요!"
         label.textColor = UIColor(hex: "915B5B")
-        label.font = UIFont.boldSystemFont(ofSize: 20)
-        return label
-    }()
-    
-    var boardConditions2: UILabel = {
-        let label = UILabel()
-        label.text = "킥보드 타기 좋은 날씨에요!"
-        label.textColor = .clear
-        //        label.textColor = UIColor(hex: "915B5B")
-        label.font = UIFont.boldSystemFont(ofSize: 15)
+        label.font = UIFont.boldSystemFont(ofSize: 18)
         return label
     }()
     
@@ -108,8 +99,21 @@ class MyPageVC: UIViewController {
         useTableView.delegate = self
         useTableView.dataSource = self
         configure()
-        updateImageBasedOnRentalStatus()
         debugKickboardData()
+        reloadInputViews()
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateImageBasedOnRentalStatus()
+        fetchData()
+    }
+    
+    private func fetchData() {
+        // KickboardEntity에 대한 FetchRequest 생성
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        // 조건걸어주기(isRentaled이 false인 데이터만)
+        // Core Data는 Bool 타입 필터링할 때 NSNumber로 변환해야한다(Swift에서는 true/false지만, 내부적으로 NSNumber를 쓰기때문)
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
     }
     
     func configure() {
@@ -124,7 +128,7 @@ class MyPageVC: UIViewController {
             logout,
         ].forEach { view.addSubview($0) }
         
-        [useImageView, userLabel, boardConditions, boardConditions2].forEach { usingView.addSubview($0) }
+        [useImageView, userLabel, boardConditions].forEach { usingView.addSubview($0) }
         
         // MyPage Title
         myPageLabel.snp.makeConstraints { make in
@@ -160,11 +164,6 @@ class MyPageVC: UIViewController {
         boardConditions.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(15)
             make.bottom.equalToSuperview().inset(23)
-        }
-        
-        boardConditions2.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(15)
-            make.bottom.equalToSuperview().inset(26)
         }
         
         // boardBreakDown (킥보드 이용내역 제목)
@@ -206,12 +205,12 @@ class MyPageVC: UIViewController {
     
     func debugKickboardData() {
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-
+        
         do {
             let kickboards = try context.fetch(fetchRequest)
-            print("📋 전체 킥보드 수: \(kickboards.count)")
+            print("전체 킥보드 수: \(kickboards.count)")
             for board in kickboards {
-                print("🧾 board.id: \(board.objectID), isRentaled: \(board.isRentaled)")
+                print("board.id: \(board.objectID), isRentaled: \(board.isRentaled)")
             }
         } catch {
             print("전체 fetch 실패: \(error)")
@@ -220,61 +219,30 @@ class MyPageVC: UIViewController {
     func updateImageBasedOnRentalStatus() {
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isRentaled == true")
-
+        
         do {
             let rentedKickboards = try context.fetch(fetchRequest)
-            print("📦 가져온 킥보드 수: \(rentedKickboards.count)")
+            print("가져온 킥보드 수: \(rentedKickboards.count)")
             for board in rentedKickboards {
-                print("🛴 킥보드 상태 isRentaled: \(board.isRentaled)")
+                print("킥보드 상태 isRentaled: \(board.isRentaled)")
             }
-
+            
             let imageName = rentedKickboards.isEmpty ? "horse2" : "horse"
             DispatchQueue.main.async {
                 self.useImageView.image = UIImage(named: imageName)
-                print("✅ 이미지 적용됨: \(imageName)")
+                print("이미지 적용됨: \(imageName)")
                 
                 if rentedKickboards.isEmpty {
-                       self.boardConditions.text = "킥보드 타기 좋은 날씨에요!"
-                   } else {
-                       self.boardConditions.text = "천마논과 안전운전 하세요!"
-                   }
+                    self.boardConditions.text = "킥보드 타기 좋은 날씨에요!"
+                } else {
+                    self.boardConditions.text = "천마논과 안전운전 하세요!"
+                }
             }
         } catch {
             print("CoreData fetch 실패: \(error)")
         }
     }
-    
-    //    func imageForUseBoard(_ isRental: Bool) -> UIImage? {
-    //        return isRental
-    //        ? UIImage(named: "horse")   // 대여 중
-    //        : UIImage(named: "horse2")  // 대여 중 아님
-    //    }
-    //
-    //    func checkRentalStatusFromCoreData() {
-    //        do {
-    //            let results = try context.fetch(fetchRequest)
-    //            for kickboard in results {
-    //                print("킥보드 상태: \(kickboard.isRentaled)")
-    //            }
-    //
-    //            let usingBoardExists = results.contains { $0.isRentaled == true }
-    //            print("대여중 킥보드 있음? → \(usingBoardExists)")
-    //
-    //            DispatchQueue.main.async {
-    //                self.isRental = usingBoardExists
-    //                self.useImageView.image = self.imageForUseBoard(self.isRental) // <- 강제 갱신
-    //            }
-    //        } catch {
-    //            print("CoreData fetch 실패: \(error)")
-    //            DispatchQueue.main.async {
-    //                self.isRental = false
-    //                self.useImageView.image = self.imageForUseBoard(self.isRental)
-    //            }
-    //        }
-    //    }
 }
-
-
 extension MyPageVC: UITableViewDataSource {
     //섹션 개수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
