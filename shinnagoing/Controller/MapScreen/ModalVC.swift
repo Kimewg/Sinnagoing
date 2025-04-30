@@ -214,6 +214,9 @@ class ModalVC: UIViewController {
                         mapVC.returnButton.isHidden = false
                         mapVC.reloadMarkers()
                         self.printAllCoreData()
+                        // 실시간 위치 추적 시작
+                        mapVC.locationManager.startUpdatingLocation()
+                        mapVC.moveCameraToCurrentLocation()
                     }
                 })
                 self.present(alert, animated: true)
