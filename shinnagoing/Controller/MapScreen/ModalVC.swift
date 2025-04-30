@@ -13,6 +13,45 @@ class ModalVC: UIViewController {
         super.viewDidLoad()
         setupUI()
     }
+    // MARK: - printAllCoreData
+    func printAllCoreData() {
+        let context = CoreDataManager.shared.context
+        print("===== :건전지: KickboardEntity 전체 목록 =====")
+        do {
+            let kickboards = try context.fetch(KickboardEntity.fetchRequest()) as! [KickboardEntity]
+            for (index, k) in kickboards.enumerated() {
+                print("""
+                [\(index + 1)]
+                ID: \(k.kickboardID ?? "없음")
+                위도: \(k.latitude)
+                경도: \(k.longitude)
+                배터리: \(k.battery)
+                대여중?: \(k.isRentaled)
+                등록한 유저: \(k.userID ?? "없음")
+                렌탈 횟수: \(k.rentalCount)
+                """)
+            }
+        } catch {
+            print(":x: KickboardEntity 가져오기 실패: \(error)")
+        }
+        print("\n===== :펼쳐진_책: RentalHistoryEntity 전체 목록 =====")
+        do {
+            let histories = try context.fetch(RentalHistoryEntity.fetchRequest()) as! [RentalHistoryEntity]
+            for (index, h) in histories.enumerated() {
+                print("""
+                [\(index + 1)]
+                유저 ID: \(h.userID ?? "없음")
+                킥보드 ID: \(h.kickboardID ?? "없음")
+                대여 시간: \(h.rentalDate ?? Date())
+                반납 시간: \(h.returnDate?.description ?? "아직 반납 안됨")
+                """)
+            }
+        } catch {
+            print(":x: RentalHistoryEntity 가져오기 실패: \(error)")
+        }
+        print("\n:흰색_확인_표시: CoreData 전체 출력 완료")
+    }
+    // MARK: - printAllCoreData 여기까지
         
     private func setupUI() {
         view.backgroundColor = .white
@@ -174,6 +213,7 @@ class ModalVC: UIViewController {
                     self.dismiss(animated: true) {
                         mapVC.returnButton.isHidden = false
                         mapVC.reloadMarkers()
+                        self.printAllCoreData()
                     }
                 })
                 self.present(alert, animated: true)
