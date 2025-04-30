@@ -4,7 +4,7 @@ import SnapKit
 import CoreData
 import CoreLocation
 
-class MapVC: UIViewController {
+class MapVC: UIViewController, CLLocationManagerDelegate {
     
     // MARK: - Properties
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -13,7 +13,7 @@ class MapVC: UIViewController {
     private let clientSecret = "DAZxZOtKQl"
     // CLLocationManager 객체 생성
     let locationManager = CLLocationManager()
-    private let mapView: NMFMapView = {
+    private var mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
         return mapView
@@ -86,12 +86,12 @@ class MapVC: UIViewController {
         DummyDataManager.shared.insertKickboardDummyData()
         fetchDataMarkers()
         searchTextField.delegate = self
-        
         // 위치 권한 요청을 위해 사용자가 위치를 사용할 수 있는지 확인하는 코드
+        locationManager.delegate = self
         // 권한 상태를 확인하는 변수
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        
+        locationManager.startUpdatingLocation()
         // 키보드가 자동으로 올라오도록 설정
         DispatchQueue.main.async {
             self.searchTextField.becomeFirstResponder()
@@ -219,6 +219,15 @@ class MapVC: UIViewController {
         fetchDataMarkers()
     }
     
+    // MARK: - moveCameraToCurrentLocation
+    
+    func moveCameraToCurrentLocation() {
+        if let location = locationManager.location {
+            let coordinate = location.coordinate
+            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
+            mapView.moveCamera(cameraUpdate)
+        }
+    }
     
     // MARK: - Actions
     
@@ -231,16 +240,13 @@ class MapVC: UIViewController {
         
         do {
             if let kickboard = try context.fetch(fetchRequest).first {
-               
+                
                 let currentLocation = locationManager.location
                 
                 kickboard.isRentaled = false
                 kickboard.battery -= 8
-  
-                // 카메라 업데이트를 위해 NMGLatLng 객체를 생성
-                let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: currentLocation!.coordinate.latitude, lng: currentLocation!.coordinate.longitude))
-                // 지도에 카메라를 이동시켜 현재 위치로 업데이트
-                mapView.moveCamera(cameraUpdate)
+                
+                moveCameraToCurrentLocation()
                 
                 kickboard.latitude = currentLocation!.coordinate.latitude
                 kickboard.longitude = currentLocation!.coordinate.longitude
@@ -276,20 +282,7 @@ class MapVC: UIViewController {
             print("위치 권한이 거부되어 있습니다.")
             return
         }
-        
-        // 위치 권한이 허용되었고, 위치 정보가 있다면 현재 위치를 가져옴
-        if let currentLocation = locationManager.location {
-            // 현재 위치의 위도(latitude)와 경도(longitude) 값을 추출
-            let coordinate = currentLocation.coordinate
-            // 카메라 업데이트를 위해 NMGLatLng 객체를 생성
-            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
-            // 지도에 카메라를 이동시켜 현재 위치로 업데이트
-            mapView.moveCamera(cameraUpdate)
-
-        } else {
-            // 위치 정보가 없다면, 오류 메시지를 출력
-            print("현재 위치를 가져올 수 없습니다.")
-        }
+        moveCameraToCurrentLocation()
     }
     // MARK: - Naver API
     
