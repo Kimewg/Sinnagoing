@@ -7,10 +7,10 @@ import CoreLocation
 class MapVC: UIViewController {
     
     // MARK: - Properties
-    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     private var markers: [NMFMarker] = []
-    
+    private let clientId = "ShRXCRqun5rU_NczZPRP"
+    private let clientSecret = "DAZxZOtKQl"
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -61,8 +61,19 @@ class MapVC: UIViewController {
         button.isHidden = true
         return button
     }()
-    private let clientId = "ShRXCRqun5rU_NczZPRP"
-    private let clientSecret = "DAZxZOtKQl"
+    lazy var myLocationButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "locationIcon"), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFill
+        button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(myLocationButtonTapped), for: .touchUpInside)
+        
+        button.layer.shadowColor = UIColor(hex: "915B5B").cgColor
+        button.layer.shadowOpacity = 0.5
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        return button
+    }()
     
     // MARK: - Lifecycle
     
@@ -84,7 +95,7 @@ class MapVC: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .white
-        [logoLabel, mapView, searchTextField, returnButton].forEach { view.addSubview($0) }
+        [logoLabel, mapView, searchTextField, returnButton, myLocationButton].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
             $0.height.equalTo(41)
@@ -108,6 +119,12 @@ class MapVC: UIViewController {
             $0.centerX.equalTo(view)
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
             $0.width.equalTo(200)
+            $0.height.equalTo(50)
+        }
+        myLocationButton.snp.makeConstraints {
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-30)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.width.equalTo(50)
             $0.height.equalTo(50)
         }
     }
@@ -228,6 +245,9 @@ class MapVC: UIViewController {
     }
     @objc func focusSearchField() {
         searchTextField.becomeFirstResponder()
+    }
+    @objc func myLocationButtonTapped() {
+        
     }
     // MARK: - Naver API
     
