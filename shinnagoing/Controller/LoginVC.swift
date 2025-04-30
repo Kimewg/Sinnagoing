@@ -9,7 +9,7 @@ class LoginVC: UIViewController {
         let textField = UITextField()
         textField.placeholder = "아이디를 입력하세요."
         textField.text = ""
-        textField.textColor = UIColor(hex: "C89F43")
+        textField.textColor = UIColor(hex: "915B5B")
         textField.backgroundColor = UIColor(hex: "F6F6F6")
         textField.borderStyle = .roundedRect
         return textField
@@ -21,7 +21,7 @@ class LoginVC: UIViewController {
         textField.text = ""
         textField.isSecureTextEntry = true
         textField.textContentType = .password
-        textField.textColor = UIColor(hex: "C89F43")
+        textField.textColor = UIColor(hex: "915B5B")
         textField.backgroundColor = UIColor(hex: "F6F6F6")
         textField.borderStyle = .roundedRect
         return textField
