@@ -7,38 +7,47 @@ import CoreLocation
 class MapVC: UIViewController {
     
     // MARK: - Properties
-    
-    let context = CoreDataManager.shared.context
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     private var markers: [NMFMarker] = []
-    
+    private let clientId = "ShRXCRqun5rU_NczZPRP"
+    private let clientSecret = "DAZxZOtKQl"
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
         return mapView
     }()
     
-    private let searchTextField: UITextField = {
+    lazy var searchTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "어디로 가신라요?"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = .white
-        textField.textColor = UIColor(red: 0.632, green: 0.604, blue: 0.604, alpha: 1)
+        textField.textColor = UIColor(hex: "#915B5B")
         textField.layer.borderColor = UIColor(red: 0.523, green: 0.523, blue: 0.523, alpha: 1).cgColor
         textField.layer.borderWidth = 1
         textField.layer.cornerRadius = 10
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.addTarget(self, action: #selector(focusSearchField), for: .touchUpInside)
+        let iconImageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        iconImageView.tintColor = UIColor(hex: "#915B5B")
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+        
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 34, height: 24))
+        containerView.addSubview(iconImageView)
+        iconImageView.center = containerView.center
+        
+        textField.rightView = containerView
+        textField.rightViewMode = .always
         return textField
     }()
     
-    private let logoLabel: UILabel = {
-        let label = UILabel()
-        label.text = "SINNAGOING"
-        label.textColor = UIColor(red: 0.784, green: 0.624, blue: 0.263, alpha: 1)
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.textAlignment = .center
-        label.backgroundColor = .white
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private let logoLabel: UIImageView = {
+        let image = UIImageView()
+        image.image = UIImage(named: "stringLogo")
+        image.contentMode = .scaleAspectFit
+        image.clipsToBounds = true
+        return image
     }()
     
     lazy var returnButton: UIButton = {
@@ -52,8 +61,19 @@ class MapVC: UIViewController {
         button.isHidden = true
         return button
     }()
-    private let clientId = "ShRXCRqun5rU_NczZPRP"
-    private let clientSecret = "DAZxZOtKQl"
+    lazy var myLocationButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage(named: "locationIcon"), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFill
+        button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(myLocationButtonTapped), for: .touchUpInside)
+        
+        button.layer.shadowColor = UIColor(hex: "915B5B").cgColor
+        button.layer.shadowOpacity = 0.5
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        return button
+    }()
     
     // MARK: - Lifecycle
     
@@ -75,15 +95,17 @@ class MapVC: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .white
-        [logoLabel, mapView, searchTextField, returnButton].forEach { view.addSubview($0) }
+        [logoLabel, mapView, searchTextField, returnButton, myLocationButton].forEach { view.addSubview($0) }
         
         logoLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.height.equalTo(41)
+            $0.width.equalTo(164)
             $0.centerX.equalToSuperview()
+            $0.top.equalToSuperview().offset(63)
         }
         
         mapView.snp.makeConstraints {
-            $0.top.equalTo(logoLabel.snp.bottom).offset(20)
+            $0.top.equalTo(logoLabel.snp.bottom).offset(8)
             $0.leading.trailing.bottom.equalToSuperview()
         }
         
@@ -99,6 +121,12 @@ class MapVC: UIViewController {
             $0.width.equalTo(200)
             $0.height.equalTo(50)
         }
+        myLocationButton.snp.makeConstraints {
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-30)
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.width.equalTo(50)
+            $0.height.equalTo(50)
+        }
     }
     
     // MARK: - Map & Marker Logic
@@ -110,7 +138,7 @@ class MapVC: UIViewController {
         // 지도에 카메라 이동 적용
         mapView.moveCamera(cameraUpdate)
     }
-
+    
     // 데이터베이스에서 킥보드 정보를 가져와서 마커를 추가하는 함수
     private func fetchDataMarkers() {
         // KickboardEntity에 대한 FetchRequest 생성
@@ -123,13 +151,17 @@ class MapVC: UIViewController {
             // 데이터베이스에서 킥보드 데이터 가져오기
             let kickboards = try context.fetch(fetchRequest)
             // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach { addMarker(kickboard: $0) }
+            kickboards.forEach {
+                if !$0.isRentaled {
+                    addMarker(kickboard: $0)
+                }
+            }
         } catch {
             // 데이터 가져오기 실패 시 에러 출력
             print("Error fetching locations: \(error)")
         }
     }
-
+    
     // 킥보드 데이터를 기반으로 마커를 지도에 추가하는 함수
     private func addMarker(kickboard: KickboardEntity) {
         // NMFMarker 객체 생성
@@ -175,11 +207,11 @@ class MapVC: UIViewController {
             marker.mapView = nil
         }
         markers.removeAll()
-
+        
         // 새로 fetch해서 마커 추가
         fetchDataMarkers()
     }
-
+    
     
     // MARK: - Actions
     
@@ -214,6 +246,12 @@ class MapVC: UIViewController {
         } catch {
             print("반납 처리 중 오류")
         }
+    }
+    @objc func focusSearchField() {
+        searchTextField.becomeFirstResponder()
+    }
+    @objc func myLocationButtonTapped() {
+        
     }
     // MARK: - Naver API
     
@@ -264,7 +302,7 @@ class MapVC: UIViewController {
                         self.presentAlert(title: "검색 결과 없음", message: "장소를 찾을 수 없습니다.")
                     }
                 } else {
-                    // 검색 결과가 있으면 첫 번째 항목을 처리
+                    // 검색 결과가 있으면 첫 번째(title) 항목을 처리
                     let roadAddress = result.items.first?.roadAddress ?? ""
                     let address = result.items.first?.address ?? ""
                     if roadAddress.count > 0 {

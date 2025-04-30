@@ -25,60 +25,71 @@ class ModalVC: UIViewController {
         // --- UI 컴포넌트 만들기 ---
         let batteryLabel = UILabel()
         batteryLabel.text = "\(battery)%"
-        batteryLabel.font = UIFont.systemFont(ofSize: 43, weight: .bold)
+        batteryLabel.font = UIFont.systemFont(ofSize: 30, weight: .bold)
         batteryLabel.textColor = .black
         batteryLabel.textAlignment = .center
         
-        let batteryImageView = UIImageView(image: UIImage(named: "battery"))
+        let batteryImageView = UIImageView()
+        batteryImageView.image = imageForBatteryLevel(Int(battery))
         batteryImageView.contentMode = .scaleAspectFit
+        batteryImageView.tintColor = UIColor(hex: "915B5B")
+
+
+        let kickBoardImageView = UIImageView(image: UIImage(named: "kickBoard"))
+        kickBoardImageView.contentMode = .scaleAspectFit
         
         let priceLabel = UILabel()
         priceLabel.text = "1분당 3500만원"
-        priceLabel.font = UIFont.systemFont(ofSize: 18)
-        priceLabel.textColor = UIColor(red: 0.747, green: 0.747, blue: 0.747, alpha: 1)
+        priceLabel.font = UIFont.boldSystemFont(ofSize: 15)
+        priceLabel.textColor = UIColor(hex: "BEBEBE")
         priceLabel.textAlignment = .center
         
-        let imageView = UIImageView(image: UIImage(named: "image"))
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 10
-        
-        let couponButton = UIButton()
-        couponButton.setTitle("찰보리빵 10% 쿠폰 지금 받아가세요!", for: .normal)
-        couponButton.setTitleColor(UIColor(red: 0.784, green: 0.624, blue: 0.263, alpha: 1), for: .normal)
-        couponButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        couponButton.layer.cornerRadius = 10
-        couponButton.layer.borderWidth = 1
-        couponButton.layer.borderColor = UIColor(red: 0.851, green: 0.851, blue: 0.851, alpha: 1).cgColor
+        let coupon = UIImageView()
+        coupon.image = UIImage(named: "coupon")
+        coupon.contentMode = .scaleAspectFit
+        coupon.clipsToBounds = true
         
         let closeButton = UIButton()
         closeButton.setTitle("닫기", for: .normal)
-        closeButton.setTitleColor(.black, for: .normal)
-        closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        closeButton.setTitleColor(UIColor(hex: "#915B5B"), for: .normal)
+        closeButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         closeButton.layer.cornerRadius = 10
         closeButton.layer.borderWidth = 1
-        closeButton.layer.borderColor = UIColor(red: 0.851, green: 0.851, blue: 0.851, alpha: 1).cgColor
+        closeButton.layer.borderColor = UIColor(hex: "915B5B").cgColor
         closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
         
         let rentButton = UIButton()
         rentButton.setTitle("대여하기", for: .normal)
-        rentButton.backgroundColor = UIColor(red: 0.784, green: 0.624, blue: 0.263, alpha: 1)
-        rentButton.setTitleColor(.black, for: .normal)
-        rentButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        rentButton.backgroundColor = UIColor(hex: "915B5B")
+        rentButton.setTitleColor(UIColor(hex: "E7E2CC"), for: .normal)
+        rentButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         rentButton.layer.cornerRadius = 10
         rentButton.layer.borderWidth = 1
-        rentButton.layer.borderColor = UIColor(red: 0.851, green: 0.851, blue: 0.851, alpha: 1).cgColor
+        rentButton.layer.borderColor = UIColor(hex: "915B5B").cgColor
         rentButton.addTarget(self, action: #selector(rentButtonTapped), for: .touchUpInside)
         
         [
             batteryLabel,
             batteryImageView,
+            kickBoardImageView,
             priceLabel,
-            imageView,
-            couponButton,
+            coupon,
             closeButton,
             rentButton
         ].forEach { view.addSubview($0) }
+        
+        func imageForBatteryLevel(_ battery: Int) -> UIImage? {
+            switch battery {
+            case 70...100:
+                return UIImage(systemName: "battery.100")  // 🔋 3칸 이미지
+            case 30...69:
+                return UIImage(systemName: "battery.50")  // 🔋 2칸 이미지
+            case 0...29:
+                return UIImage(systemName: "battery.25")  // 🔋 1칸 이미지
+            default:
+                return UIImage(named: "battery.0")  // 예외처리 이미지
+            }
+        }
         
         // --- 오토레이아웃 ---
         batteryLabel.snp.makeConstraints {
@@ -88,38 +99,42 @@ class ModalVC: UIViewController {
         
         batteryImageView.snp.makeConstraints {
             $0.centerY.equalTo(batteryLabel)
-            $0.leading.equalTo(batteryLabel.snp.trailing).offset(8)
-            $0.width.height.equalTo(24)
+            $0.leading.equalTo(batteryLabel.snp.trailing).offset(3)
+            $0.width.equalTo(50)
+            $0.height.equalTo(30)
         }
         
+        kickBoardImageView.snp.makeConstraints { make in
+            make.width.equalTo(65)
+            make.height.equalTo(52)
+            make.leading.equalTo(batteryImageView.snp.trailing).offset(145)
+            make.top.equalToSuperview().offset(17)
+        }
+    
         priceLabel.snp.makeConstraints {
-            $0.top.equalTo(batteryLabel.snp.bottom).offset(5)
+            $0.top.equalTo(batteryLabel.snp.bottom).offset(1)
             $0.leading.equalTo(view.safeAreaLayoutGuide).offset(30)
         }
         
-        imageView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.trailing.equalTo(view.safeAreaLayoutGuide).offset(-20)
-            $0.width.height.equalTo(80)
+        
+        coupon.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(15)
+            make.top.equalTo(priceLabel.snp.bottom).offset(6)
+            make.height.equalTo(41)
         }
         
-        couponButton.snp.makeConstraints {
-            $0.top.equalTo(priceLabel.snp.bottom).offset(10)
-            $0.centerX.equalTo(view)
+        closeButton.snp.makeConstraints { make in
+            make.top.equalTo(coupon.snp.bottom).offset(9)
+            make.leading.equalToSuperview().offset(45)
+            make.width.equalTo(132)
+            make.height.equalTo(43)
         }
         
-        closeButton.snp.makeConstraints {
-            $0.top.equalTo(couponButton.snp.bottom).offset(20)
-            $0.leading.equalTo(view.safeAreaLayoutGuide).offset(20)
-            $0.width.equalTo(view.snp.width).multipliedBy(0.4)
-            $0.height.equalTo(40)
-        }
-        
-        rentButton.snp.makeConstraints {
-            $0.top.equalTo(couponButton.snp.bottom).offset(20)
-            $0.trailing.equalTo(view.safeAreaLayoutGuide).offset(-20)
-            $0.width.equalTo(closeButton)
-            $0.height.equalTo(40)
+        rentButton.snp.makeConstraints { make in
+            make.top.equalTo(coupon.snp.bottom).offset(9)
+            make.leading.equalTo(closeButton.snp.trailing).offset(48)
+            make.width.equalTo(132)
+            make.height.equalTo(43)
         }
     }
     
@@ -128,12 +143,12 @@ class ModalVC: UIViewController {
     }
     
     @objc private func rentButtonTapped() {
-
+        
         guard let mapVC = mapVC else { return }
         guard let selectedID = self.kickboardID else { return }
         //싱글톤 사용하지 않았을 경우에는 다음과 같이 호출.
         //let context = (UIApplication.shared.delegate as! Appdelegate).persistentContainer.viewContext
-       
+        
         // context 준비
         let context = CoreDataManager.shared.context
         // 어떤 엔티티를 가져올지 요청
