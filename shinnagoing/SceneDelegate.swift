@@ -1,9 +1,3 @@
-//
-//  SceneDelegate.swift
-//  shinnagoing
-//
-//  Created by 김은서 on 4/27/25.
-//
 
 import UIKit
 
@@ -14,11 +8,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        let window = UIWindow(windowScene: windowScene)
+        window = UIWindow(windowScene: windowScene)
 
-        window.rootViewController = UINavigationController(rootViewController: LoginVC())
-        window.makeKeyAndVisible()
-        self.window = window
+        // window 에게 루트 뷰 지정.
+        if let window = window {
+            window.rootViewController = TabBarVC()
+            window.makeKeyAndVisible()
+        }
+//        let loginVC = LoginVC()
+//        window?.rootViewController = loginVC
+//        window?.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

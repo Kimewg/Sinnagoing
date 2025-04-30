@@ -12,7 +12,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C66D168B2DBE505F00C8EC28 /* shinnagoing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shinnagoing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C05573672DC1E56600C4114E /* shinnagoing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = shinnagoing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -53,16 +53,8 @@
 			isa = PBXGroup;
 			children = (
 				C66D168D2DBE505F00C8EC28 /* shinnagoing */,
-				C66D168C2DBE505F00C8EC28 /* Products */,
+				C05573672DC1E56600C4114E /* shinnagoing.app */,
 			);
-			sourceTree = "<group>";
-		};
-		C66D168C2DBE505F00C8EC28 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C66D168B2DBE505F00C8EC28 /* shinnagoing.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -89,7 +81,7 @@
 				C66D16AA2DBE550E00C8EC28 /* NMapsMap */,
 			);
 			productName = shinnagoing;
-			productReference = C66D168B2DBE505F00C8EC28 /* shinnagoing.app */;
+			productReference = C05573672DC1E56600C4114E /* shinnagoing.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -121,7 +113,7 @@
 				C66D16A92DBE550E00C8EC28 /* XCRemoteSwiftPackageReference "SPM-NMapsMap" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = C66D168C2DBE505F00C8EC28 /* Products */;
+			productRefGroup = C66D16822DBE505F00C8EC28;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
