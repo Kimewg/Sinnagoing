@@ -11,6 +11,8 @@ class MapVC: UIViewController {
     private var markers: [NMFMarker] = []
     private let clientId = "ShRXCRqun5rU_NczZPRP"
     private let clientSecret = "DAZxZOtKQl"
+    // CLLocationManager 객체 생성
+    let locationManager = CLLocationManager()
     private let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -84,6 +86,11 @@ class MapVC: UIViewController {
         DummyDataManager.shared.insertKickboardDummyData()
         fetchDataMarkers()
         searchTextField.delegate = self
+        
+        // 위치 권한 요청을 위해 사용자가 위치를 사용할 수 있는지 확인하는 코드
+        // 권한 상태를 확인하는 변수
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
         
         // 키보드가 자동으로 올라오도록 설정
         DispatchQueue.main.async {
@@ -224,13 +231,19 @@ class MapVC: UIViewController {
         
         do {
             if let kickboard = try context.fetch(fetchRequest).first {
-                
+               
+                let currentLocation = locationManager.location
                 
                 kickboard.isRentaled = false
                 kickboard.battery -= 8
-                //임시용
-                kickboard.latitude -= 0.001
-                kickboard.longitude += 0.001
+  
+                // 카메라 업데이트를 위해 NMGLatLng 객체를 생성
+                let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: currentLocation!.coordinate.latitude, lng: currentLocation!.coordinate.longitude))
+                // 지도에 카메라를 이동시켜 현재 위치로 업데이트
+                mapView.moveCamera(cameraUpdate)
+                
+                kickboard.latitude = currentLocation!.coordinate.latitude
+                kickboard.longitude = currentLocation!.coordinate.longitude
                 
                 try context.save()
                 
@@ -251,7 +264,32 @@ class MapVC: UIViewController {
         searchTextField.becomeFirstResponder()
     }
     @objc func myLocationButtonTapped() {
+        // 권한 확인
+        let status = locationManager.authorizationStatus
+        // 위치 권한이 아직 요청되지 않았다면, 권한을 요청함
+        if status == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+            return
+        }
+        // 위치 권한이 거부되었거나 제한되었을 경우, 권한이 없다는 메시지를 출력
+        if status == .denied || status == .restricted {
+            print("위치 권한이 거부되어 있습니다.")
+            return
+        }
         
+        // 위치 권한이 허용되었고, 위치 정보가 있다면 현재 위치를 가져옴
+        if let currentLocation = locationManager.location {
+            // 현재 위치의 위도(latitude)와 경도(longitude) 값을 추출
+            let coordinate = currentLocation.coordinate
+            // 카메라 업데이트를 위해 NMGLatLng 객체를 생성
+            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
+            // 지도에 카메라를 이동시켜 현재 위치로 업데이트
+            mapView.moveCamera(cameraUpdate)
+
+        } else {
+            // 위치 정보가 없다면, 오류 메시지를 출력
+            print("현재 위치를 가져올 수 없습니다.")
+        }
     }
     // MARK: - Naver API
     
@@ -380,4 +418,5 @@ extension MapVC: UITextFieldDelegate {
         return true
     }
 }
+
 

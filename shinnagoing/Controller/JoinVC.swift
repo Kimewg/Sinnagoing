@@ -239,6 +239,7 @@ class JoinVC: UIViewController {
             // 새 회원 추가
         let newUser = ["name": name, "id": id, "password": password]
             users.append(newUser)
+        
 
             // 저장
             UserDefaults.standard.set(users, forKey: "users")
