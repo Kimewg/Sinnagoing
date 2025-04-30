@@ -3,6 +3,8 @@ import SnapKit
 
 class LoginVC: UIViewController {
     
+    let splashView = SplashView()
+    
     var idTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "아이디를 입력하세요."
@@ -60,6 +62,16 @@ class LoginVC: UIViewController {
         
         view.backgroundColor = .white
         configure()
+        splashView.frame = view.bounds
+        view.addSubview(splashView)
+        
+        // 여기서 맨 앞의 뷰로 확실히 지정해줌
+        view.bringSubviewToFront(splashView)
+        
+        // 현재에서 2초 후에 dismiss되게 세팅
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.dismissSplashView()
+        }
     }
     
     func configure() {
@@ -140,5 +152,14 @@ extension UIColor {
         let blue = CGFloat(rgb & 0x0000FF) / 255.0
         
         self.init(red: red, green: green, blue: blue, alpha: 1.0)
+    }
+}
+extension LoginVC {
+    func dismissSplashView() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.splashView.alpha = 0
+        }) { _ in
+            self.splashView.removeFromSuperview()
+        }
     }
 }

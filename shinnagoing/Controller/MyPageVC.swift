@@ -232,6 +232,12 @@ class MyPageVC: UIViewController {
             DispatchQueue.main.async {
                 self.useImageView.image = UIImage(named: imageName)
                 print("✅ 이미지 적용됨: \(imageName)")
+                
+                if rentedKickboards.isEmpty {
+                       self.boardConditions.text = "킥보드 타기 좋은 날씨에요!"
+                   } else {
+                       self.boardConditions.text = "천마논과 안전운전 하세요!"
+                   }
             }
         } catch {
             print("CoreData fetch 실패: \(error)")
