@@ -39,7 +39,16 @@ class MyPageVC: UIViewController {
     
     var userLabel: UILabel = {
         let label = UILabel()
-        label.text = "최영락님,"
+        
+        // UserDefaults에서 "users" 배열을 불러온 후 마지막 사용자의 이름을 가져옴
+        if let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
+           let lastUser = users.last,
+           let name = lastUser["name"] {
+            label.text = "\(name)님,"
+        } else {
+            label.text = "사용자님,"
+        }
+        
         label.textColor = .black
         label.font = UIFont.boldSystemFont(ofSize: 13)
         return label
