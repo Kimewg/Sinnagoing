@@ -19,7 +19,7 @@ class MapVC: UIViewController {
     
     lazy var searchTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "어디로 가시나요?"
+        textField.placeholder = "어디로 가신라요?"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = .white
         textField.textColor = UIColor(hex: "#915B5B")
@@ -151,7 +151,11 @@ class MapVC: UIViewController {
             // 데이터베이스에서 킥보드 데이터 가져오기
             let kickboards = try context.fetch(fetchRequest)
             // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach { addMarker(kickboard: $0) }
+            kickboards.forEach {
+                if !$0.isRentaled {
+                    addMarker(kickboard: $0)
+                }
+            }
         } catch {
             // 데이터 가져오기 실패 시 에러 출력
             print("Error fetching locations: \(error)")
@@ -298,7 +302,7 @@ class MapVC: UIViewController {
                         self.presentAlert(title: "검색 결과 없음", message: "장소를 찾을 수 없습니다.")
                     }
                 } else {
-                    // 검색 결과가 있으면 첫 번째 항목을 처리
+                    // 검색 결과가 있으면 첫 번째(title) 항목을 처리
                     let roadAddress = result.items.first?.roadAddress ?? ""
                     let address = result.items.first?.address ?? ""
                     if roadAddress.count > 0 {
