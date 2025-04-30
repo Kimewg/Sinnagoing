@@ -6,19 +6,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-
+        
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-
-        // window 에게 루트 뷰 지정.
+        
         if let window = window {
             window.rootViewController = TabBarVC()
             window.makeKeyAndVisible()
         }
-//        let loginVC = LoginVC()
-//        window?.rootViewController = loginVC
-//        window?.makeKeyAndVisible()
     }
+//        let loginVC = LoginVC()
+//        window?.rootViewController = UINavigationController(rootViewController: loginVC)
+//        window?.makeKeyAndVisible()
+//    }
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
@@ -51,3 +51,4 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 }
 
+//로그인뷰에서

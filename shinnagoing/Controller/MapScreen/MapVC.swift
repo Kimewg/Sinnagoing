@@ -19,7 +19,7 @@ class MapVC: UIViewController {
     
     lazy var searchTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "어디로 가시나요?"
+        textField.placeholder = "어디로 가신라요?"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = .white
         textField.textColor = UIColor(hex: "#915B5B")

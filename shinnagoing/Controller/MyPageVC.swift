@@ -1,7 +1,14 @@
 import UIKit
 import SnapKit
+import CoreData
 
 class MyPageVC: UIViewController {
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+
+    
     
     var myPageLabel: UILabel = {
         let label = UILabel()
@@ -23,11 +30,10 @@ class MyPageVC: UIViewController {
         return view
     }()
     
-    var imageView: UIImageView = {
+    lazy var useImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "horse")
+//        imageView.image = imageForUseBoard(isRental)
         imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -41,17 +47,18 @@ class MyPageVC: UIViewController {
     
     var boardConditions: UILabel = {
         let label = UILabel()
-        label.text = "현재 킥보드                   입니다."
-        label.textColor = .black
-        label.font = UIFont.boldSystemFont(ofSize: 13)
+        label.text = "천마논과 안전운전 하세요!"
+        label.textColor = UIColor(hex: "915B5B")
+        label.font = UIFont.boldSystemFont(ofSize: 20)
         return label
     }()
     
     var boardConditions2: UILabel = {
         let label = UILabel()
-        label.text = "이용중"
-        label.textColor = UIColor(hex: "915B5B")
-        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.text = "킥보드 타기 좋은 날씨에요!"
+        label.textColor = .clear
+        //        label.textColor = UIColor(hex: "915B5B")
+        label.font = UIFont.boldSystemFont(ofSize: 15)
         return label
     }()
     
@@ -101,6 +108,8 @@ class MyPageVC: UIViewController {
         useTableView.delegate = self
         useTableView.dataSource = self
         configure()
+        updateImageBasedOnRentalStatus()
+        debugKickboardData()
     }
     
     func configure() {
@@ -112,10 +121,10 @@ class MyPageVC: UIViewController {
             useTableView,
             addBoardList,   // <- 테이블뷰보다 위에 추가
             addBoardTableView,
-            logout
+            logout,
         ].forEach { view.addSubview($0) }
         
-        [imageView, userLabel, boardConditions, boardConditions2].forEach { usingView.addSubview($0) }
+        [useImageView, userLabel, boardConditions, boardConditions2].forEach { usingView.addSubview($0) }
         
         // MyPage Title
         myPageLabel.snp.makeConstraints { make in
@@ -132,29 +141,29 @@ class MyPageVC: UIViewController {
         
         // Using View
         usingView.snp.makeConstraints { make in
-            make.top.equalTo(separator.snp.bottom).offset(34) // ← 깔끔하게 separator 기준
+            make.top.equalTo(separator.snp.bottom).offset(34)
             make.leading.trailing.equalToSuperview().inset(42)
             make.height.equalTo(84)
         }
         
-        imageView.snp.makeConstraints { make in
+        useImageView.snp.makeConstraints { make in
             make.size.equalTo(81)
             make.trailing.equalToSuperview().inset(16)
-            make.centerY.equalToSuperview() // 이거 추가
+            make.centerY.equalToSuperview()
         }
         
         userLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(8)
+            make.top.equalToSuperview().offset(12)
             make.leading.equalToSuperview().offset(15)
         }
         
         boardConditions.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(15)
-            make.bottom.equalToSuperview().inset(26)
+            make.bottom.equalToSuperview().inset(23)
         }
         
         boardConditions2.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(80)
+            make.leading.equalToSuperview().offset(15)
             make.bottom.equalToSuperview().inset(26)
         }
         
@@ -194,6 +203,69 @@ class MyPageVC: UIViewController {
             make.height.equalTo(33)
         }
     }
+    
+    func debugKickboardData() {
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+
+        do {
+            let kickboards = try context.fetch(fetchRequest)
+            print("📋 전체 킥보드 수: \(kickboards.count)")
+            for board in kickboards {
+                print("🧾 board.id: \(board.objectID), isRentaled: \(board.isRentaled)")
+            }
+        } catch {
+            print("전체 fetch 실패: \(error)")
+        }
+    }
+    func updateImageBasedOnRentalStatus() {
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == true")
+
+        do {
+            let rentedKickboards = try context.fetch(fetchRequest)
+            print("📦 가져온 킥보드 수: \(rentedKickboards.count)")
+            for board in rentedKickboards {
+                print("🛴 킥보드 상태 isRentaled: \(board.isRentaled)")
+            }
+
+            let imageName = rentedKickboards.isEmpty ? "horse2" : "horse"
+            DispatchQueue.main.async {
+                self.useImageView.image = UIImage(named: imageName)
+                print("✅ 이미지 적용됨: \(imageName)")
+            }
+        } catch {
+            print("CoreData fetch 실패: \(error)")
+        }
+    }
+    
+    //    func imageForUseBoard(_ isRental: Bool) -> UIImage? {
+    //        return isRental
+    //        ? UIImage(named: "horse")   // 대여 중
+    //        : UIImage(named: "horse2")  // 대여 중 아님
+    //    }
+    //
+    //    func checkRentalStatusFromCoreData() {
+    //        do {
+    //            let results = try context.fetch(fetchRequest)
+    //            for kickboard in results {
+    //                print("킥보드 상태: \(kickboard.isRentaled)")
+    //            }
+    //
+    //            let usingBoardExists = results.contains { $0.isRentaled == true }
+    //            print("대여중 킥보드 있음? → \(usingBoardExists)")
+    //
+    //            DispatchQueue.main.async {
+    //                self.isRental = usingBoardExists
+    //                self.useImageView.image = self.imageForUseBoard(self.isRental) // <- 강제 갱신
+    //            }
+    //        } catch {
+    //            print("CoreData fetch 실패: \(error)")
+    //            DispatchQueue.main.async {
+    //                self.isRental = false
+    //                self.useImageView.image = self.imageForUseBoard(self.isRental)
+    //            }
+    //        }
+    //    }
 }
 
 

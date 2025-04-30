@@ -1,9 +1,11 @@
 import UIKit
 import SnapKit
+import CoreData
 
 class ModalVC: UIViewController {
     var battery: Int16 = 0
     var mapVC: MapVC?
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,8 +27,11 @@ class ModalVC: UIViewController {
         batteryLabel.textColor = .black
         batteryLabel.textAlignment = .center
         
-        let batteryImageView = UIImageView(image: UIImage(named: "battery"))
+        let batteryImageView = UIImageView()
+        batteryImageView.image = imageForBatteryLevel(Int(battery))
         batteryImageView.contentMode = .scaleAspectFit
+        batteryImageView.tintColor = UIColor(hex: "915B5B")
+
 
         let kickBoardImageView = UIImageView(image: UIImage(named: "kickBoard"))
         kickBoardImageView.contentMode = .scaleAspectFit
@@ -71,6 +76,19 @@ class ModalVC: UIViewController {
             rentButton
         ].forEach { view.addSubview($0) }
         
+        func imageForBatteryLevel(_ battery: Int) -> UIImage? {
+            switch battery {
+            case 70...100:
+                return UIImage(systemName: "battery.100")  // 🔋 3칸 이미지
+            case 30...69:
+                return UIImage(systemName: "battery.50")  // 🔋 2칸 이미지
+            case 0...29:
+                return UIImage(systemName: "battery.25")  // 🔋 1칸 이미지
+            default:
+                return UIImage(named: "battery.0")  // 예외처리 이미지
+            }
+        }
+        
         // --- 오토레이아웃 ---
         batteryLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
@@ -79,9 +97,9 @@ class ModalVC: UIViewController {
         
         batteryImageView.snp.makeConstraints {
             $0.centerY.equalTo(batteryLabel)
-            $0.leading.equalTo(batteryLabel.snp.trailing).offset(8)
-            $0.height.equalTo(29)
-            $0.width.equalTo(55)
+            $0.leading.equalTo(batteryLabel.snp.trailing).offset(3)
+            $0.width.equalTo(50)
+            $0.height.equalTo(30)
         }
         
         kickBoardImageView.snp.makeConstraints { make in
