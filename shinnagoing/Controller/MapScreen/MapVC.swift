@@ -186,21 +186,35 @@ class MapVC: UIViewController {
     @objc private func returnButtonTapped() {
         let context = CoreDataManager.shared.context
         
-        let fetchrequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         
-        let kickboard =
+        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: true))
         
-        kickboard.isRentaled = false
-        let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
-            self.returnButton.isHidden = true
-           
-        })
-        present(alert, animated: true)
-        
-        reloadMarkers()
+        do {
+            if let kickboard = try context.fetch(fetchRequest).first {
+                
+                
+                kickboard.isRentaled = false
+                kickboard.battery -= 8
+                //임시용
+                kickboard.latitude -= 0.001
+                kickboard.longitude += 0.001
+                
+                try context.save()
+                
+                let alert = UIAlertController(title: "반납 완료", message: "킥보드를 반납했습니다.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in
+                    self.returnButton.isHidden = true
+                    
+                })
+                present(alert, animated: true)
+                
+                reloadMarkers()
+            }
+        } catch {
+            print("반납 처리 중 오류")
+        }
     }
-    
     // MARK: - Naver API
     
     // 주어진 query를 바탕으로 네이버 API를 호출하여 장소를 검색하는 함수
