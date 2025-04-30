@@ -220,10 +220,11 @@ class JoinVC: UIViewController {
         }
     }
     @objc func joinButtonTapped() {
-            guard let id = idTextField.text, !id.isEmpty,
+            guard let name = userNameTextField.text, !name.isEmpty,
+                  let id = idTextField.text, !id.isEmpty,
                   let password = passWordTextField.text, !password.isEmpty,
                   let confirmPassword = secondPasswordTextField.text, !confirmPassword.isEmpty else {
-                showAlert(title: "오류", message: "아이디 또는 비밀번호가 비어있습니다.")
+                showAlert(title: "오류", message: "이름, 아이디 또는 비밀번호가 비어있습니다.")
                 return
             }
             
@@ -236,13 +237,13 @@ class JoinVC: UIViewController {
             var users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
 
             // 새 회원 추가
-            let newUser = ["id": id, "password": password]
+        let newUser = ["name": name, "id": id, "password": password]
             users.append(newUser)
 
             // 저장
             UserDefaults.standard.set(users, forKey: "users")
 
-            print("회원가입 성공: \(id)")
+            print("회원가입 성공: \(name) ( \(id))")
             navigationController?.popViewController(animated: true)
         }
         func showAlert(title: String, message: String) {

@@ -52,7 +52,7 @@ class LoginVC: UIViewController {
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        button.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -119,15 +119,22 @@ class LoginVC: UIViewController {
         // 입력한 정보와 일치하는 회원이 있는지 확인
         if users.contains(where: { $0["id"] == id && $0["password"] == password }) {
             print("로그인 성공")
-            moveToMapVC()
+            moveToTabBar()
         } else {
             showAlert(title: "로그인 실패", message: "아이디 또는 비밀번호가 일치하지 않습니다.")
         }
     }
 
-    func moveToMapVC() {
-        let mapView = MapVC()
-        navigationController?.pushViewController(mapView, animated: true)
+    func moveToTabBar() {
+        let tabBarVC = TabBarVC()
+
+        // 앱의 윈도우 루트를 TabBarVC로 교체
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let sceneDelegate = windowScene.delegate as? SceneDelegate {
+
+            sceneDelegate.window?.rootViewController = tabBarVC
+            sceneDelegate.window?.makeKeyAndVisible()
+        }
     }
 
     func showAlert(title: String, message: String) {
@@ -136,10 +143,12 @@ class LoginVC: UIViewController {
         present(alert, animated: true)
     }
 
-    @objc func joinButtonTapped() {
-        let joinVC = JoinVC()
-        navigationController?.pushViewController(joinVC, animated: true)
-    }
+    @objc func buttonTapped() {
+        print("클릭됨")
+        let vc = JoinVC()
+        self.navigationItem.backButtonTitle = ""
+        navigationController?.pushViewController(vc, animated: true)
+}
     
     
 }

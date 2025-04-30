@@ -106,10 +106,14 @@ class MyPageVC: UIViewController {
     
     @objc func logoutTapped() {
         let loginVC = LoginVC()
-        loginVC.modalPresentationStyle = .fullScreen
-        present(loginVC, animated: true, completion: nil)
+        let navVC = UINavigationController(rootViewController: loginVC)
+
+        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        if let window = windowScene?.windows.first {
+            window.rootViewController = navVC
+            window.makeKeyAndVisible()
+        }
     }
-    
     func configure() {
         [
             myPageLabel,
