@@ -172,67 +172,80 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
     }
     
     @objc func registerKickboard() {
+        // 대여 중이면 등록 불가
         if RentalManager.shared.checkUserIsRenting() {
             let alert = UIAlertController(title: "다메다메", message: "대여 중엔 안댐", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in })
+            alert.addAction(UIAlertAction(title: "확인", style: .default))
             self.present(alert, animated: true)
-            
-        } else {
-            guard let address = addressTextField.text, !address.isEmpty else {
-                print("주소가 비어 있습니다.")
+            return
+        }
+
+        // 주소 필수 확인
+        guard let address = addressTextField.text, !address.isEmpty else {
+            print("주소가 비어 있습니다.")
+            return
+        }
+
+        // 현재 로그인한 사용자 ID 불러오기
+        guard let userID = UserDefaults.standard.string(forKey: "currentUserID") else {
+            print("로그인 정보 없음")
+            return
+        }
+
+        // 주소 → 좌표 변환
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
+            guard let self else { return }
+
+            if let error = error {
+                print("주소 변환 실패: \(error.localizedDescription)")
                 return
             }
-            
-            
-            let geocoder = CLGeocoder()
-            geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
-                if let error = error {
-                    return
+
+            guard let location = placemarks?.first?.location else {
+                print("위치 정보 없음")
+                return
+            }
+
+            let latitude = location.coordinate.latitude
+            let longitude = location.coordinate.longitude
+
+            // 마커 표시
+            let marker = NMFMarker()
+            marker.position = NMGLatLng(lat: latitude, lng: longitude)
+            marker.iconImage = NMFOverlayImage(name: "marker")
+            marker.width = 50
+            marker.height = 50
+            marker.captionText = "킥보드 위치"
+            marker.mapView = self.mapView
+
+            // Core Data 저장
+            let context = CoreDataManager.shared.context
+            let newKickboard = KickboardEntity(context: context)
+            newKickboard.kickboardID = UUID().uuidString
+            newKickboard.latitude = latitude
+            newKickboard.longitude = longitude
+            newKickboard.battery = 100
+            newKickboard.isRentaled = false
+            newKickboard.userID = userID
+            newKickboard.rentalCount = 0
+
+            do {
+                try context.save()
+                print("킥보드 저장 완료")
+
+                // 마커 리로드
+                if let tabBarVC = self.tabBarController,
+                   let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
+                   let mapVC = navVC.viewControllers.first as? MapVC {
+                    mapVC.reloadMarkers()
                 }
-                
-                guard let location = placemarks?.first?.location else {
-                    return
-                }
-                
-                let latitude = location.coordinate.latitude
-                let longitude = location.coordinate.longitude
-                
-                UserDefaults.standard.set([latitude, longitude], forKey: "RegisteredKickboard")
-                
-                print("등록된 좌표: \(latitude), \(longitude)")
-                
-                let marker = NMFMarker()
-                let customImage = NMFOverlayImage(name: "marker")
-                marker.iconImage = customImage
-                marker.width = 50
-                marker.height = 50
-                marker.position = NMGLatLng(lat: latitude, lng: longitude)
-                marker.captionText = "킥보드 위치"
-                marker.mapView = self?.mapView
-                guard let self = self else { return }
-                
-                let newKickboard = KickboardEntity(context: self.context)
-                newKickboard.kickboardID = UUID().uuidString
-                newKickboard.latitude = latitude
-                newKickboard.longitude = longitude
-                newKickboard.isRentaled = false
-                newKickboard.battery = 100
-                
-                do {
-                    try context.save()
-                    
-                    if let tabBarVC = self.tabBarController,
-                       let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
-                       let mapVC = navVC.viewControllers.first as? MapVC {
-                        mapVC.reloadMarkers()
-                    }
-                } catch {
-                    print("저장 실패: \(error.localizedDescription)")
-                }
-                
+
                 DispatchQueue.main.async {
-                    self.tabBarController?.selectedIndex = 0  // 0 = 지도 탭 인덱스
+                    self.tabBarController?.selectedIndex = 0
                 }
+            } catch {
+                print("CoreData 저장 실패: \(error.localizedDescription)")
             }
         }
     }

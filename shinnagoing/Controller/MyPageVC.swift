@@ -101,87 +101,82 @@ class MyPageVC: UIViewController {
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Core Data에서 데이터를 가져옵니다.
-        rentalHistory = fetchRentalHistory() // 렌탈된 킥보드 데이터
-        myRegisteredBoards = fetchMyRegisteredBoards() // 등록된 킥보드 데이터
-        // 테이블 뷰 리로드
+
+        rentalHistory = fetchRentalHistory()
         useTableView.reloadData()
-        addBoardTableView.reloadData()
+
+        fetchMyRegisteredBoards { boards in
+            self.myRegisteredBoards = boards
+            self.addBoardTableView.reloadData()
+        }
+
         updateImageBasedOnRentalStatus()
     }
-    
+
     func fetchRentalHistory() -> [String] {
-        guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-              let lastUser = users.last,
-              let userID = lastUser["id"] else {
+        guard let userID = UserDefaults.standard.string(forKey: "currentUserID") else {
             return []
         }
 
         let fetchRequest: NSFetchRequest<RentalHistoryEntity> = RentalHistoryEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "rentalDate", ascending: false)] // 최신순 정렬
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "rentalDate", ascending: false)]
 
         do {
             let rentedKickboards = try context.fetch(fetchRequest)
-            return rentedKickboards.compactMap { rentalHistory in
-                guard let rentalStart = rentalHistory.rentalDate,
-                      let rentalEnd = rentalHistory.returnDate else {
-                    return nil // 반납되지 않은 항목은 제외
-                }
+            return rentedKickboards.compactMap { rental in
+                guard let start = rental.rentalDate, let end = rental.returnDate else { return nil }
 
-                let rentalDateString = formatDateWithDayOfWeek(rentalStart) // 대여 날짜와 요일
-                let usageTimeRangeString = formatRentalTimeRange(from: rentalStart, to: rentalEnd) // 대여 시간 ~ 반납 시간
-                let duration = calculateUsageDuration(from: rentalStart, to: rentalEnd) // 이용 시간 계산
-                let totalCharge = calculateTotalCharge(from: rentalStart, to: rentalEnd) // 이용 요금 계산
+                let dateStr = formatDateWithDayOfWeek(start)
+                let timeRange = formatRentalTimeRange(from: start, to: end)
+                let duration = calculateUsageDuration(from: start, to: end)
+                let price = calculateTotalCharge(from: start, to: end)
 
-                return "\(rentalDateString)\n\(usageTimeRangeString) | \(duration) | \(formatPrice(totalCharge))" // 두 줄로 표시
+                return "\(dateStr)\n\(timeRange) | \(duration) | \(formatPrice(price))"
             }
         } catch {
-            print("렌탈된 킥보드 데이터 가져오기 실패: \(error)")
+            print("렌탈 히스토리 가져오기 실패: \(error)")
             return []
         }
     }
+
     // 수정된 fetchMyRegisteredBoards 함수
-    func fetchMyRegisteredBoards() -> [String] {
-        guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-              let lastUser = users.last,
-              let userID = lastUser["id"] else {
-            return []
+    func fetchMyRegisteredBoards(completion: @escaping ([String]) -> Void) {
+        guard let userID = UserDefaults.standard.string(forKey: "currentUserID") else {
+            completion([])
+            return
         }
 
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
 
-        var boardDescriptions: [String] = []
-        let group = DispatchGroup()
+        DispatchQueue.global().async {
+            var boardDescriptions: [String] = []
+            let group = DispatchGroup()
 
-        do {
-            let registeredKickboards = try context.fetch(fetchRequest)
+            do {
+                let registeredKickboards = try self.context.fetch(fetchRequest)
 
-            for kickboard in registeredKickboards {
-                let latitude = kickboard.latitude
-                let longitude = kickboard.longitude
-                let battery = kickboard.battery
-                let rentalCount = kickboard.rentalCount
-
-                let location = CLLocation(latitude: latitude, longitude: longitude)
-                group.enter()
-
-                locationToAddress(location: location) { address in
-                    let addressText = address ?? "주소 정보 없음"
-                    let secondLine = "배터리 잔량: \(battery)% | 대여 회수: \(rentalCount)회"
-                    let description = "\(addressText)\n\(secondLine)"
-                    boardDescriptions.append(description)
-                    group.leave()
+                for kickboard in registeredKickboards {
+                    let location = CLLocation(latitude: kickboard.latitude, longitude: kickboard.longitude)
+                    group.enter()
+                    self.locationToAddress(location: location) { address in
+                        let addressText = address ?? "주소 정보 없음"
+                        let secondLine = "배터리 잔량: \(kickboard.battery)% | 대여 횟수: \(kickboard.rentalCount)회"
+                        boardDescriptions.append("\(addressText)\n\(secondLine)")
+                        print("\(kickboard.battery), \(kickboard.rentalCount)")
+                        group.leave()
+                    }
                 }
+
+                group.notify(queue: .main) {
+                    completion(boardDescriptions)
+                }
+            } catch {
+                print("킥보드 가져오기 실패: \(error)")
+                completion([])
             }
-
-            group.wait()
-        } catch {
-            print("등록된 킥보드 데이터 가져오기 실패: \(error)")
         }
-
-        return boardDescriptions
     }
         func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
                 let geocoder = CLGeocoder()
@@ -369,7 +364,7 @@ class MyPageVC: UIViewController {
             }
             let text = tableView == useTableView ? rentalHistory[indexPath.row] : myRegisteredBoards[indexPath.row]
             cell.contentLabel.text = text
-            cell.contentLabel.numberOfLines = tableView == useTableView ? 0 : 1
+            cell.contentLabel.numberOfLines = 0
             return cell
         }
     }
