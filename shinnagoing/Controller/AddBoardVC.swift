@@ -202,6 +202,10 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
                 print("등록된 좌표: \(latitude), \(longitude)")
                 
                 let marker = NMFMarker()
+                let customImage = NMFOverlayImage(name: "marker")
+                marker.iconImage = customImage
+                marker.width = 50
+                marker.height = 50
                 marker.position = NMGLatLng(lat: latitude, lng: longitude)
                 marker.captionText = "킥보드 위치"
                 marker.mapView = self?.mapView
