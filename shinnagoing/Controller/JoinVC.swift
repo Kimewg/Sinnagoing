@@ -220,33 +220,41 @@ class JoinVC: UIViewController {
         }
     }
     @objc func joinButtonTapped() {
-            guard let name = userNameTextField.text, !name.isEmpty,
-                  let id = idTextField.text, !id.isEmpty,
-                  let password = passWordTextField.text, !password.isEmpty,
-                  let confirmPassword = secondPasswordTextField.text, !confirmPassword.isEmpty else {
-                showAlert(title: "오류", message: "이름, 아이디 또는 비밀번호가 비어있습니다.")
-                return
-            }
-            
-            guard password == confirmPassword else {
-                showAlert(title: "비밀번호 불일치", message: "비밀번호가 일치하지 않습니다.")
-                return
-            }
-            
-            // 기존 회원 리스트 가져오기
-            var users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
-
-            // 새 회원 추가
-        let newUser = ["name": name, "id": id, "password": password]
-            users.append(newUser)
-        
-
-            // 저장
-            UserDefaults.standard.set(users, forKey: "users")
-            UserDefaults.standard.set(id, forKey: "currentUserID")
-            print("회원가입 성공: \(name) ( \(id))")
-            navigationController?.popViewController(animated: true)
+        guard let name = userNameTextField.text, !name.isEmpty,
+           let id = idTextField.text, !id.isEmpty,
+           let password = passWordTextField.text, !password.isEmpty,
+           let confirmPassword = secondPasswordTextField.text, !confirmPassword.isEmpty else {
+          showAlert(title: "오류", message: "이름, 아이디 또는 비밀번호가 비어있습니다.")
+          return
         }
+        guard password == confirmPassword else {
+          showAlert(title: "비밀번호 불일치", message: "비밀번호가 일치하지 않습니다.")
+          return
+        }
+        // 기존 회원 리스트 가져오기
+        var users = UserDefaults.standard.array(forKey: "users") as? [[String: String]] ?? []
+        // 중복 확인 로직 추가
+        let isNameDuplicated = users.contains { $0["name"] == name }
+        let isIdDuplicated = users.contains { $0["id"] == id }
+        if isNameDuplicated && isIdDuplicated {
+          showAlert(title: "중복 오류", message: "이름과 아이디가 모두 중복되었습니다.")
+          return
+        } else if isNameDuplicated {
+          showAlert(title: "중복 오류", message: "이름이 중복되었습니다.")
+          return
+        } else if isIdDuplicated {
+          showAlert(title: "중복 오류", message: "아이디가 중복되었습니다.")
+          return
+        }
+        // 새 회원 추가
+        let newUser = ["name": name, "id": id, "password": password]
+        users.append(newUser)
+        // 저장
+        UserDefaults.standard.set(users, forKey: "users")
+        UserDefaults.standard.set(id, forKey: "currentUserID")
+        print("회원가입 성공: \(name) ( \(id))")
+        navigationController?.popViewController(animated: true)
+      }
         func showAlert(title: String, message: String) {
             let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "확인", style: .default))

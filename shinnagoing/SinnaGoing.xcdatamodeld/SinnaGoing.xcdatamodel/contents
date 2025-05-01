@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24E263" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24B91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="KickboardEntity" representedClassName="KickboardEntity" syncable="YES" codeGenerationType="class">
         <attribute name="battery" optional="YES" attributeType="Integer 16" defaultValueString="100" usesScalarValueType="YES"/>
         <attribute name="isRentaled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
