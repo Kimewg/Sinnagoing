@@ -31,17 +31,17 @@ class MyPageVC: UIViewController {
     }()
     var userLabel: UILabel = {
         let label = UILabel()
-        if let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-           let lastUser = users.last,
-           let name = lastUser["name"] {
-            label.text = "\(name)님,"
+        // currentUserName을 가져와서 사용자 이름을 표시
+        if let name = UserDefaults.standard.string(forKey: "currentUserName") {
+          label.text = "\(name)님,"
         } else {
-            label.text = "사용자님,"
+          label.text = "사용자님,"
         }
         label.textColor = .black
         label.font = UIFont.boldSystemFont(ofSize: 13)
         return label
-    }()
+      }()
+
     var boardConditions: UILabel = {
         let label = UILabel()
         label.text = "천마논과 안전운전 하세요!"
@@ -146,17 +146,13 @@ class MyPageVC: UIViewController {
             completion([])
             return
         }
-
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
-
         DispatchQueue.global().async {
             var boardDescriptions: [String] = []
             let group = DispatchGroup()
-
             do {
                 let registeredKickboards = try self.context.fetch(fetchRequest)
-
                 for kickboard in registeredKickboards {
                     let location = CLLocation(latitude: kickboard.latitude, longitude: kickboard.longitude)
                     group.enter()
@@ -164,11 +160,9 @@ class MyPageVC: UIViewController {
                         let addressText = address ?? "주소 정보 없음"
                         let secondLine = "배터리 잔량: \(kickboard.battery)% | 대여 횟수: \(kickboard.rentalCount)회"
                         boardDescriptions.append("\(addressText)\n\(secondLine)")
-                        print("\(kickboard.battery), \(kickboard.rentalCount)")
                         group.leave()
                     }
                 }
-
                 group.notify(queue: .main) {
                     completion(boardDescriptions)
                 }
@@ -178,21 +172,37 @@ class MyPageVC: UIViewController {
             }
         }
     }
-        func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
-                let geocoder = CLGeocoder()
-                geocoder.reverseGeocodeLocation(location) { placemarks, error in
-                    if let error = error {
-                        print("주소 변환 오류: \(error.localizedDescription)")
-                        completion(nil)
-                        return
-                    }
-                    if let placemark = placemarks?.first, let address = placemark.thoroughfare {
-                        completion(address) // 주소 반환
-                    } else {
-                        completion(nil) // 주소 변환 실패
-                    }
-                }
+    func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { placemarks, error in
+            if let error = error {
+                print("주소 변환 오류: \(error.localizedDescription)")
+                completion(nil)
+                return
             }
+            if let placemark = placemarks?.first {
+                var addressParts: [String] = []
+                if let administrativeArea = placemark.administrativeArea {
+                    addressParts.append(administrativeArea) // 예: 경상북도
+                }
+                if let locality = placemark.locality {
+                    addressParts.append(locality) // 예: 경주시
+                }
+                if let thoroughfare = placemark.thoroughfare {
+                    addressParts.append(thoroughfare) // 예: 경주대로
+                }
+                if let subThoroughfare = placemark.subThoroughfare {
+                    addressParts.append(subThoroughfare) // 예: 800
+                }
+                let filteredAddress = addressParts
+                    .compactMap { $0 }
+                    .joined(separator: " ")
+                completion(filteredAddress)
+            } else {
+                completion(nil)
+            }
+        }
+    }
     @objc func logoutTapped() {
         if RentalManager.shared.checkUserIsRenting() {
             let alert = UIAlertController(title: "다메다메", message: "킥보드 돌려주고 가셈", preferredStyle: .alert)
@@ -200,15 +210,17 @@ class MyPageVC: UIViewController {
             self.present(alert, animated: true)
         }
         else {
-            let loginVC = LoginVC()
-            let navVC = UINavigationController(rootViewController: loginVC)
-            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-            if let window = windowScene?.windows.first {
+              UserDefaults.standard.removeObject(forKey: "currentUserID")
+                  UserDefaults.standard.synchronize()
+              let loginVC = LoginVC()
+              let navVC = UINavigationController(rootViewController: loginVC)
+              let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+              if let window = windowScene?.windows.first {
                 window.rootViewController = navVC
                 window.makeKeyAndVisible()
+              }
             }
-        }
-    }
+          }
         func configure() {
             [
                 myPageLabel,
@@ -290,6 +302,7 @@ class MyPageVC: UIViewController {
             addBoardTableView.rowHeight = UITableView.automaticDimension
             addBoardTableView.estimatedRowHeight = 60
             addBoardTableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 8, right: 0)
+        
         }
         func updateImageBasedOnRentalStatus() {
             let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()

@@ -92,6 +92,9 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         locationManager.distanceFilter = 10
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+//      moveCameraToCurrentLocation()
+        enableUserLocation()
         // 위치 업데이트 현재는 현위치가 미국이라서 일단 주석
         //  locationManager.startUpdatingLocation()
         // 키보드가 자동으로 올라오도록 설정
@@ -264,6 +267,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
                 let currentLocation = locationManager.location
                 kickboard.isRentaled = false
                 kickboard.battery -= 8
+                kickboard.rentalCount += 1
                 
                 moveCameraToCurrentLocation()
                 
