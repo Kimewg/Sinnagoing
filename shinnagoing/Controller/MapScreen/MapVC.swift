@@ -96,6 +96,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         DispatchQueue.main.async {
             self.searchTextField.becomeFirstResponder()
         }
+        
     }
     
     // MARK: - UI Setup
@@ -119,7 +120,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         searchTextField.snp.makeConstraints {
             $0.top.equalTo(mapView.snp.top).offset(20)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.equalTo(40)
+            $0.height.equalTo(50)
         }
         
         returnButton.snp.makeConstraints {
@@ -148,24 +149,14 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     
     // 데이터베이스에서 킥보드 정보를 가져와서 마커를 추가하는 함수
     private func fetchDataMarkers() {
-        // KickboardEntity에 대한 FetchRequest 생성
         let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-        // 조건걸어주기(isRentaled이 false인 데이터만)
-        // Core Data는 Bool 타입 필터링할 때 NSNumber로 변환해야한다(Swift에서는 true/false지만, 내부적으로 NSNumber를 쓰기때문)
         fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
         
         do {
-            // 데이터베이스에서 킥보드 데이터 가져오기
             let kickboards = try context.fetch(fetchRequest)
-            // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach {
-                if !$0.isRentaled {
-                    addMarker(kickboard: $0)
-                }
-            }
+            kickboards.forEach { self.addMarker(kickboard: $0) }
         } catch {
-            // 데이터 가져오기 실패 시 에러 출력
-            print("Error fetching locations: \(error)")
+            print("CoreData fetch 에러: \(error.localizedDescription)")
         }
     }
     
