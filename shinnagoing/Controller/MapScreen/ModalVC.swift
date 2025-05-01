@@ -217,6 +217,8 @@ class ModalVC: UIViewController {
                         // 실시간 위치 추적 시작
                         mapVC.locationManager.startUpdatingLocation()
                         mapVC.moveCameraToCurrentLocation()
+                        
+                        mapVC.enableUserLocation()
                     }
                 })
                 self.present(alert, animated: true)

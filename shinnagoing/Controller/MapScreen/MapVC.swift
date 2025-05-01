@@ -89,9 +89,11 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         // 위치 권한 요청을 위해 사용자가 위치를 사용할 수 있는지 확인하는 코드
         locationManager.delegate = self
         // 권한 상태를 확인하는 변수
+        locationManager.distanceFilter = 10
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.startUpdatingLocation()
+        // 위치 업데이트 현재는 현위치가 미국이라서 일단 주석
+      //  locationManager.startUpdatingLocation()
         // 키보드가 자동으로 올라오도록 설정
         DispatchQueue.main.async {
             self.searchTextField.becomeFirstResponder()
@@ -217,8 +219,22 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
             let coordinate = location.coordinate
             let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
             mapView.moveCamera(cameraUpdate)
+            print("location update1")
         }
     }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print("location update2")
+        if let location = locationManager.location {
+            let coordinate = location.coordinate
+            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
+            mapView.moveCamera(cameraUpdate)
+            print("location update1")
+        }
+    }
+    func enableUserLocation() {
+        mapView.positionMode = .direction // 또는 .normal
+    }
+
     
     // MARK: - Actions
     
@@ -377,7 +393,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     }
     
     // 사용자에게 알림을 표시하는 함수
-    private func presentAlert(title: String, message: String) {
+    func presentAlert(title: String, message: String) {
         // 알림 컨트롤러 생성
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         // 확인 버튼 추가
