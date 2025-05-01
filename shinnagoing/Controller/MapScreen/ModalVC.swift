@@ -2,6 +2,7 @@ import UIKit
 import CoreData
 import SnapKit
 import CoreData
+import CoreLocation
 
 class ModalVC: UIViewController {
     let context = CoreDataManager.shared.context

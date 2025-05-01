@@ -169,6 +169,11 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         // 마커의 위치를 킥보드의 위도, 경도에 맞게 설정
         marker.position = NMGLatLng(lat: kickboard.latitude, lng: kickboard.longitude)
         marker.mapView = mapView  // 마커를 지도에 추가
+        // 마커 이미지 변경
+        let customImage = NMFOverlayImage(name: "marker")
+        marker.iconImage = customImage
+        marker.width = 50
+        marker.height = 50
         
         // 마커 배열에 추가 (마커 관리용)
         markers.append(marker)
@@ -231,6 +236,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
             print("location update1")
         }
     }
+    
     func enableUserLocation() {
         mapView.positionMode = .direction // 또는 .normal
     }

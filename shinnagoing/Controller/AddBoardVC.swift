@@ -1,9 +1,10 @@
 import UIKit
 import SnapKit
 import NMapsMap
+import CoreLocation
 
-class AddBoardVC: UIViewController {
-    
+class AddBoardVC: UIViewController, UITextFieldDelegate {
+    let locationManager = CLLocationManager()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     let mapView: NMFMapView = {
@@ -87,7 +88,11 @@ class AddBoardVC: UIViewController {
         configure()
         navigationController?.navigationBar.isHidden = true
         setupInitialCamera()
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
         
+        addressTextField.delegate = self
     }
     private func setupInitialCamera() {
         // 경주(35.836, 129.219) 위치로 카메라를 이동
@@ -95,6 +100,25 @@ class AddBoardVC: UIViewController {
         // 지도에 카메라 이동 적용
         mapView.moveCamera(cameraUpdate)
     }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        
+        guard let address = textField.text, !address.isEmpty else { return true }
+        
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
+            guard let location = placemarks?.first?.location else { return }
+            
+            let lat = location.coordinate.latitude
+            let lng = location.coordinate.longitude
+            let update = NMFCameraUpdate(scrollTo: NMGLatLng(lat: lat, lng: lng))
+            self?.mapView.moveCamera(update)
+        }
+        
+        return true
+    }
+    
     func configure() {
         [label,
          label2,
@@ -146,30 +170,36 @@ class AddBoardVC: UIViewController {
         }
         
     }
+    
     @objc func registerKickboard() {
+        
         guard let address = addressTextField.text, !address.isEmpty else {
             print("주소가 비어 있습니다.")
             return
         }
         
-
+        
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
             if let error = error {
                 return
             }
-
+            
             guard let location = placemarks?.first?.location else {
                 return
             }
-
+            
             let latitude = location.coordinate.latitude
             let longitude = location.coordinate.longitude
             
+            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: latitude, lng: longitude))
+            
+            self?.mapView.moveCamera(cameraUpdate)
+            
             UserDefaults.standard.set([latitude, longitude], forKey: "RegisteredKickboard")
-
+            
             print("등록된 좌표: \(latitude), \(longitude)")
-
+            
             let marker = NMFMarker()
             marker.position = NMGLatLng(lat: latitude, lng: longitude)
             marker.captionText = "킥보드 위치"
@@ -182,7 +212,7 @@ class AddBoardVC: UIViewController {
             newKickboard.longitude = longitude
             newKickboard.isRentaled = false
             newKickboard.battery = 100
-
+            
             do {
                 try context.save()
                 
@@ -201,3 +231,4 @@ class AddBoardVC: UIViewController {
         }
     }
 }
+
