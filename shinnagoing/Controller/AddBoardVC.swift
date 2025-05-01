@@ -1,9 +1,10 @@
 import UIKit
 import SnapKit
 import NMapsMap
+import CoreLocation
 
-class AddBoardVC: UIViewController {
-    
+class AddBoardVC: UIViewController, UITextFieldDelegate {
+    let locationManager = CLLocationManager()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     let mapView: NMFMapView = {
@@ -87,7 +88,11 @@ class AddBoardVC: UIViewController {
         configure()
         navigationController?.navigationBar.isHidden = true
         setupInitialCamera()
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
         
+        addressTextField.delegate = self
     }
     private func setupInitialCamera() {
         // 경주(35.836, 129.219) 위치로 카메라를 이동
@@ -95,6 +100,25 @@ class AddBoardVC: UIViewController {
         // 지도에 카메라 이동 적용
         mapView.moveCamera(cameraUpdate)
     }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        
+        guard let address = textField.text, !address.isEmpty else { return true }
+        
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
+            guard let location = placemarks?.first?.location else { return }
+            
+            let lat = location.coordinate.latitude
+            let lng = location.coordinate.longitude
+            let update = NMFCameraUpdate(scrollTo: NMGLatLng(lat: lat, lng: lng))
+            self?.mapView.moveCamera(update)
+        }
+        
+        return true
+    }
+    
     func configure() {
         [label,
          label2,
@@ -146,58 +170,71 @@ class AddBoardVC: UIViewController {
         }
         
     }
+    
     @objc func registerKickboard() {
-        guard let address = addressTextField.text, !address.isEmpty else {
-            print("주소가 비어 있습니다.")
-            return
-        }
-        
-
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
-            if let error = error {
+        if RentalManager.shared.checkUserIsRenting() {
+            let alert = UIAlertController(title: "다메다메", message: "대여 중엔 안댐", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in })
+            self.present(alert, animated: true)
+            
+        } else {
+            guard let address = addressTextField.text, !address.isEmpty else {
+                print("주소가 비어 있습니다.")
                 return
             }
-
-            guard let location = placemarks?.first?.location else {
-                return
-            }
-
-            let latitude = location.coordinate.latitude
-            let longitude = location.coordinate.longitude
             
-            UserDefaults.standard.set([latitude, longitude], forKey: "RegisteredKickboard")
-
-            print("등록된 좌표: \(latitude), \(longitude)")
-
-            let marker = NMFMarker()
-            marker.position = NMGLatLng(lat: latitude, lng: longitude)
-            marker.captionText = "킥보드 위치"
-            marker.mapView = self?.mapView
-            guard let self = self else { return }
             
-            let newKickboard = KickboardEntity(context: self.context)
-            newKickboard.kickboardID = UUID().uuidString
-            newKickboard.latitude = latitude
-            newKickboard.longitude = longitude
-            newKickboard.isRentaled = false
-            newKickboard.battery = 100
-
-            do {
-                try context.save()
-                
-                if let tabBarVC = self.tabBarController,
-                   let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
-                   let mapVC = navVC.viewControllers.first as? MapVC {
-                    mapVC.reloadMarkers()
+            let geocoder = CLGeocoder()
+            geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
+                if let error = error {
+                    return
                 }
-            } catch {
-                print("저장 실패: \(error.localizedDescription)")
-            }
-            
-            DispatchQueue.main.async {
-                self.tabBarController?.selectedIndex = 0  // 0 = 지도 탭 인덱스
+                
+                guard let location = placemarks?.first?.location else {
+                    return
+                }
+                
+                let latitude = location.coordinate.latitude
+                let longitude = location.coordinate.longitude
+                
+                UserDefaults.standard.set([latitude, longitude], forKey: "RegisteredKickboard")
+                
+                print("등록된 좌표: \(latitude), \(longitude)")
+                
+                let marker = NMFMarker()
+                let customImage = NMFOverlayImage(name: "marker")
+                marker.iconImage = customImage
+                marker.width = 50
+                marker.height = 50
+                marker.position = NMGLatLng(lat: latitude, lng: longitude)
+                marker.captionText = "킥보드 위치"
+                marker.mapView = self?.mapView
+                guard let self = self else { return }
+                
+                let newKickboard = KickboardEntity(context: self.context)
+                newKickboard.kickboardID = UUID().uuidString
+                newKickboard.latitude = latitude
+                newKickboard.longitude = longitude
+                newKickboard.isRentaled = false
+                newKickboard.battery = 100
+                
+                do {
+                    try context.save()
+                    
+                    if let tabBarVC = self.tabBarController,
+                       let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
+                       let mapVC = navVC.viewControllers.first as? MapVC {
+                        mapVC.reloadMarkers()
+                    }
+                } catch {
+                    print("저장 실패: \(error.localizedDescription)")
+                }
+                
+                DispatchQueue.main.async {
+                    self.tabBarController?.selectedIndex = 0  // 0 = 지도 탭 인덱스
+                }
             }
         }
     }
 }
+

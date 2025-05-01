@@ -109,6 +109,7 @@ class MyPageVC: UIViewController {
         addBoardTableView.reloadData()
         updateImageBasedOnRentalStatus()
     }
+    
     func fetchRentalHistory() -> [String] {
         guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
               let lastUser = users.last,
@@ -123,16 +124,17 @@ class MyPageVC: UIViewController {
         do {
             let rentedKickboards = try context.fetch(fetchRequest)
             return rentedKickboards.compactMap { rentalHistory in
-                guard let rentalDate = rentalHistory.rentalDate else {
-                    return nil
+                guard let rentalStart = rentalHistory.rentalDate,
+                      let rentalEnd = rentalHistory.returnDate else {
+                    return nil // 반납되지 않은 항목은 제외
                 }
-                let rentalDateString = formatDate(rentalDate)
-                if let returnDate = rentalHistory.returnDate {
-                    let duration = calculateUsageDuration(from: rentalDate, to: returnDate)
-                    return "\(rentalDateString) - 이용 시간: \(duration)"
-                } else {
-                    return "\(rentalDateString) - 이용 중"
-                }
+
+                let rentalDateString = formatDateWithDayOfWeek(rentalStart) // 대여 날짜와 요일
+                let usageTimeRangeString = formatRentalTimeRange(from: rentalStart, to: rentalEnd) // 대여 시간 ~ 반납 시간
+                let duration = calculateUsageDuration(from: rentalStart, to: rentalEnd) // 이용 시간 계산
+                let totalCharge = calculateTotalCharge(from: rentalStart, to: rentalEnd) // 이용 요금 계산
+
+                return "\(rentalDateString)\n\(usageTimeRangeString) | \(duration) | \(formatPrice(totalCharge))" // 두 줄로 표시
             }
         } catch {
             print("렌탈된 킥보드 데이터 가져오기 실패: \(error)")
@@ -141,36 +143,46 @@ class MyPageVC: UIViewController {
     }
     // 수정된 fetchMyRegisteredBoards 함수
     func fetchMyRegisteredBoards() -> [String] {
-            guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-                  let lastUser = users.last,
-                  let userID = lastUser["id"] else {
-                return []
-            }
-            let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
-            var boardDescriptions: [String] = []
-            let group = DispatchGroup()
-            do {
-                let registeredKickboards = try context.fetch(fetchRequest)
-                for kickboard in registeredKickboards {
-                    let latitude = kickboard.latitude
-                    let longitude = kickboard.longitude
-                    let location = CLLocation(latitude: latitude, longitude: longitude)
-                    group.enter()
-                    locationToAddress(location: location) { address in
-                        let addressText = address ?? "주소 정보 없음"
-                        let description = "위도: \(latitude), 경도: \(longitude), 주소: \(addressText)"
-                        boardDescriptions.append(description)
-                        group.leave()
-                    }
-                }
-                group.wait() // 비동기 주소 변환이 끝날 때까지 대기
-            } catch {
-                print("등록된 킥보드 데이터 가져오기 실패: \(error)")
-            }
-            return boardDescriptions
+        guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
+              let lastUser = users.last,
+              let userID = lastUser["id"] else {
+            return []
         }
 
+        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
+
+        var boardDescriptions: [String] = []
+        let group = DispatchGroup()
+
+        do {
+            let registeredKickboards = try context.fetch(fetchRequest)
+
+            for kickboard in registeredKickboards {
+                let latitude = kickboard.latitude
+                let longitude = kickboard.longitude
+                let battery = kickboard.battery
+                let rentalCount = kickboard.rentalCount
+
+                let location = CLLocation(latitude: latitude, longitude: longitude)
+                group.enter()
+
+                locationToAddress(location: location) { address in
+                    let addressText = address ?? "주소 정보 없음"
+                    let secondLine = "배터리 잔량: \(battery)% | 대여 회수: \(rentalCount)회"
+                    let description = "\(addressText)\n\(secondLine)"
+                    boardDescriptions.append(description)
+                    group.leave()
+                }
+            }
+
+            group.wait()
+        } catch {
+            print("등록된 킥보드 데이터 가져오기 실패: \(error)")
+        }
+
+        return boardDescriptions
+    }
         func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
                 let geocoder = CLGeocoder()
                 geocoder.reverseGeocodeLocation(location) { placemarks, error in
@@ -186,7 +198,13 @@ class MyPageVC: UIViewController {
                     }
                 }
             }
-        @objc func logoutTapped() {
+    @objc func logoutTapped() {
+        if RentalManager.shared.checkUserIsRenting() {
+            let alert = UIAlertController(title: "다메다메", message: "킥보드 돌려주고 가셈", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in })
+            self.present(alert, animated: true)
+        }
+        else {
             let loginVC = LoginVC()
             let navVC = UINavigationController(rootViewController: loginVC)
             let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
@@ -195,6 +213,7 @@ class MyPageVC: UIViewController {
                 window.makeKeyAndVisible()
             }
         }
+    }
         func configure() {
             [
                 myPageLabel,
@@ -296,20 +315,45 @@ class MyPageVC: UIViewController {
             }
         }
         // 날짜를 원하는 형식으로 변환하는 함수
-        func formatDate(_ date: Date) -> String {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss" // 원하는 날짜 형식으로 변경 가능
-            return dateFormatter.string(from: date)
-        }
+    func formatDateWithDayOfWeek(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy년 MM월 dd일"
+        let dateString = formatter.string(from: date)
+
+        // 요일 추출 (한글 요일)
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let weekDays = ["일", "월", "화", "수", "목", "금", "토"]
+        let weekdayString = weekDays[weekday - 1] // 1 = 일요일, 7 = 토요일
+
+        return "\(dateString) (\(weekdayString))"
+    }
         // 렌탈 시간과 반납 시간 차이를 계산하는 함수
-        func calculateUsageDuration(from rentalDate: Date, to returnDate: Date) -> String {
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.hour, .minute, .second], from: rentalDate, to: returnDate)
-            guard let hour = components.hour, let minute = components.minute, let second = components.second else {
-                return "계산 오류"
-            }
-            return String(format: "%02d:%02d:%02d", hour, minute, second)
-        }
+    func formatRentalTimeRange(from startDate: Date, to endDate: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        let startTimeString = formatter.string(from: startDate)
+        let endTimeString = formatter.string(from: endDate)
+
+        return "\(startTimeString) ~ \(endTimeString)"
+    }
+    func calculateUsageDuration(from startDate: Date, to endDate: Date) -> String {
+        let interval = Int(endDate.timeIntervalSince(startDate))
+        let minutes = interval / 60
+        return String(format: "%02d분", minutes) // "00분" 형태로 반환
+    }
+    func calculateTotalCharge(from startDate: Date, to endDate: Date) -> Int {
+        let rentalDuration = endDate.timeIntervalSince(startDate) // 초 단위
+        let durationInMinutes = Int(ceil(rentalDuration / 60)) // 올림 처리해서 1분 단위로 요금 청구
+        let totalCharge = durationInMinutes * 100 // 분당 100원
+        return totalCharge
+    }
+    func formatPrice(_ price: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        let formattedPrice = formatter.string(from: NSNumber(value: price)) ?? "\(price)"
+        return "\(formattedPrice)원"
+    }
     }
     extension MyPageVC: UITableViewDataSource {
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -325,6 +369,7 @@ class MyPageVC: UIViewController {
             }
             let text = tableView == useTableView ? rentalHistory[indexPath.row] : myRegisteredBoards[indexPath.row]
             cell.contentLabel.text = text
+            cell.contentLabel.numberOfLines = tableView == useTableView ? 0 : 1
             return cell
         }
     }
