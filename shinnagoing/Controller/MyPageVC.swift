@@ -110,82 +110,82 @@ class MyPageVC: UIViewController {
         updateImageBasedOnRentalStatus()
     }
     func fetchRentalHistory() -> [String] {
-      guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-            let lastUser = users.last,
-            let userID = lastUser["name"] else {
-        return []
-      }
-
-      let fetchRequest: NSFetchRequest<RentalHistoryEntity> = RentalHistoryEntity.fetchRequest()
-      fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
-      fetchRequest.sortDescriptors = [NSSortDescriptor(key: "rentalDate", ascending: false)] // 최신순 정렬
-
-      do {
-        let rentedKickboards = try context.fetch(fetchRequest)
-        return rentedKickboards.compactMap { rentalHistory in
-          guard let rentalDate = rentalHistory.rentalDate else {
-            return nil
-          }
-          let rentalDateString = formatDate(rentalDate)
-          if let returnDate = rentalHistory.returnDate {
-            let duration = calculateUsageDuration(from: rentalDate, to: returnDate)
-            return "\(rentalDateString) - 이용 시간: \(duration)"
-          } else {
-            return "\(rentalDateString) - 이용 중"
-          }
+        guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
+              let lastUser = users.last,
+              let userID = lastUser["id"] else {
+            return []
         }
-      } catch {
-        print("렌탈된 킥보드 데이터 가져오기 실패: \(error)")
-        return []
-      }
+
+        let fetchRequest: NSFetchRequest<RentalHistoryEntity> = RentalHistoryEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "rentalDate", ascending: false)] // 최신순 정렬
+
+        do {
+            let rentedKickboards = try context.fetch(fetchRequest)
+            return rentedKickboards.compactMap { rentalHistory in
+                guard let rentalDate = rentalHistory.rentalDate else {
+                    return nil
+                }
+                let rentalDateString = formatDate(rentalDate)
+                if let returnDate = rentalHistory.returnDate {
+                    let duration = calculateUsageDuration(from: rentalDate, to: returnDate)
+                    return "\(rentalDateString) - 이용 시간: \(duration)"
+                } else {
+                    return "\(rentalDateString) - 이용 중"
+                }
+            }
+        } catch {
+            print("렌탈된 킥보드 데이터 가져오기 실패: \(error)")
+            return []
+        }
     }
     // 수정된 fetchMyRegisteredBoards 함수
     func fetchMyRegisteredBoards() -> [String] {
-        guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
-              let lastUser = users.last,
-              let userID = lastUser["name"] else {
-            return []
-        }
-        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
-        var boardDescriptions: [String] = []
-        let group = DispatchGroup()
-        do {
-            let registeredKickboards = try context.fetch(fetchRequest)
-            for kickboard in registeredKickboards {
-                let latitude = kickboard.latitude
-                let longitude = kickboard.longitude
-                let location = CLLocation(latitude: latitude, longitude: longitude)
-                group.enter()
-                locationToAddress(location: location) { address in
-                    let addressText = address ?? "주소 정보 없음"
-                    let description = "위도: \(latitude), 경도: \(longitude), 주소: \(addressText)"
-                    boardDescriptions.append(description)
-                    group.leave()
-                }
+            guard let users = UserDefaults.standard.array(forKey: "users") as? [[String: String]],
+                  let lastUser = users.last,
+                  let userID = lastUser["id"] else {
+                return []
             }
-            group.wait() // 비동기 주소 변환이 끝날 때까지 대기
-        } catch {
-            print("등록된 킥보드 데이터 가져오기 실패: \(error)")
+            let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userID == %@", userID)
+            var boardDescriptions: [String] = []
+            let group = DispatchGroup()
+            do {
+                let registeredKickboards = try context.fetch(fetchRequest)
+                for kickboard in registeredKickboards {
+                    let latitude = kickboard.latitude
+                    let longitude = kickboard.longitude
+                    let location = CLLocation(latitude: latitude, longitude: longitude)
+                    group.enter()
+                    locationToAddress(location: location) { address in
+                        let addressText = address ?? "주소 정보 없음"
+                        let description = "위도: \(latitude), 경도: \(longitude), 주소: \(addressText)"
+                        boardDescriptions.append(description)
+                        group.leave()
+                    }
+                }
+                group.wait() // 비동기 주소 변환이 끝날 때까지 대기
+            } catch {
+                print("등록된 킥보드 데이터 가져오기 실패: \(error)")
+            }
+            return boardDescriptions
         }
-        return boardDescriptions
-    }
 
-    func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
-            let geocoder = CLGeocoder()
-            geocoder.reverseGeocodeLocation(location) { placemarks, error in
-                if let error = error {
-                    print("주소 변환 오류: \(error.localizedDescription)")
-                    completion(nil)
-                    return
-                }
-                if let placemark = placemarks?.first, let address = placemark.thoroughfare {
-                    completion(address) // 주소 반환
-                } else {
-                    completion(nil) // 주소 변환 실패
+        func locationToAddress(location: CLLocation, completion: @escaping (String?) -> Void) {
+                let geocoder = CLGeocoder()
+                geocoder.reverseGeocodeLocation(location) { placemarks, error in
+                    if let error = error {
+                        print("주소 변환 오류: \(error.localizedDescription)")
+                        completion(nil)
+                        return
+                    }
+                    if let placemark = placemarks?.first, let address = placemark.thoroughfare {
+                        completion(address) // 주소 반환
+                    } else {
+                        completion(nil) // 주소 변환 실패
+                    }
                 }
             }
-        }
         @objc func logoutTapped() {
             let loginVC = LoginVC()
             let navVC = UINavigationController(rootViewController: loginVC)
