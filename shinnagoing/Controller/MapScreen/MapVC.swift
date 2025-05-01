@@ -89,13 +89,16 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         // 위치 권한 요청을 위해 사용자가 위치를 사용할 수 있는지 확인하는 코드
         locationManager.delegate = self
         // 권한 상태를 확인하는 변수
+        locationManager.distanceFilter = 10
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.startUpdatingLocation()
+        // 위치 업데이트 현재는 현위치가 미국이라서 일단 주석
+        //  locationManager.startUpdatingLocation()
         // 키보드가 자동으로 올라오도록 설정
         DispatchQueue.main.async {
             self.searchTextField.becomeFirstResponder()
         }
+        
     }
     
     // MARK: - UI Setup
@@ -119,7 +122,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         searchTextField.snp.makeConstraints {
             $0.top.equalTo(mapView.snp.top).offset(20)
             $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.equalTo(40)
+            $0.height.equalTo(50)
         }
         
         returnButton.snp.makeConstraints {
@@ -149,31 +152,23 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     // 데이터베이스에서 킥보드 정보를 가져와서 마커를 추가하는 함수
     private func fetchDataMarkers() {
         // KickboardEntity에 대한 FetchRequest 생성
-        if RentalManager.shared.checkUserIsRenting() {
-            print("대여중, 마커 비표시")
+        if RentalManager.shared.checkUserIsRenting(){
+            print("대여중이라 마커 숨길거임")
             return
         }
-        
-        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-        // 조건걸어주기(isRentaled이 false인 데이터만)
-        // Core Data는 Bool 타입 필터링할 때 NSNumber로 변환해야한다(Swift에서는 true/false지만, 내부적으로 NSNumber를 쓰기때문)
-        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
-        
-        do {
-            // 데이터베이스에서 킥보드 데이터 가져오기
-            let kickboards = try context.fetch(fetchRequest)
-            // 각 킥보드에 대해 마커를 추가
-            kickboards.forEach {
-                if !$0.isRentaled {
-                    addMarker(kickboard: $0)
-                }
+        else {
+            let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
+            
+            do {
+                // 데이터베이스에서 킥보드 데이터 가져오기
+                let kickboards = try context.fetch(fetchRequest)
+                kickboards.forEach { self.addMarker(kickboard: $0) }
+            } catch {
+                print("CoreData fetch 에러: \(error.localizedDescription)")
             }
-        } catch {
-            // 데이터 가져오기 실패 시 에러 출력
-            print("Error fetching locations: \(error)")
         }
     }
-    
     // 킥보드 데이터를 기반으로 마커를 지도에 추가하는 함수
     private func addMarker(kickboard: KickboardEntity) {
         // NMFMarker 객체 생성
@@ -212,7 +207,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
             return true
         }
     }
-
+    
     // 마커 리로드 함수
     func reloadMarkers() {
         // 현재 마커들 지도에서 지우기
@@ -232,8 +227,22 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
             let coordinate = location.coordinate
             let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
             mapView.moveCamera(cameraUpdate)
+            print("location update1")
         }
     }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print("location update2")
+        if let location = locationManager.location {
+            let coordinate = location.coordinate
+            let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: coordinate.latitude, lng: coordinate.longitude))
+            mapView.moveCamera(cameraUpdate)
+            print("location update1")
+        }
+    }
+    func enableUserLocation() {
+        mapView.positionMode = .direction // 또는 .normal
+    }
+    
     
     // MARK: - Actions
     
@@ -415,7 +424,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     }
     
     // 사용자에게 알림을 표시하는 함수
-    private func presentAlert(title: String, message: String) {
+    func presentAlert(title: String, message: String) {
         // 알림 컨트롤러 생성
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         // 확인 버튼 추가

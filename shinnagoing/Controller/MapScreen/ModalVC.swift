@@ -198,7 +198,7 @@ class ModalVC: UIViewController {
         do {
             if let kickboard = try context.fetch(fetchRequest).first {
                 kickboard.isRentaled = true
-                let userID = UserDefaults.standard.string(forKey: "currentUserID") ?? ""
+                let userID = UserDefaults.standard.string(forKey: "currentUserID")
                 let rental = RentalHistoryEntity(context: context)
                 rental.kickboardID = selectedID
                 rental.userID = userID
@@ -217,6 +217,8 @@ class ModalVC: UIViewController {
                         // 실시간 위치 추적 시작
                         mapVC.locationManager.startUpdatingLocation()
                         mapVC.moveCameraToCurrentLocation()
+                        
+                        mapVC.enableUserLocation()
                     }
                 })
                 self.present(alert, animated: true)

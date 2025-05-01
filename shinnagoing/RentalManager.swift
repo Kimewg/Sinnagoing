@@ -9,9 +9,10 @@ final class RentalManager {
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     func checkUserIsRenting() -> Bool {
+        
         let request: NSFetchRequest<RentalHistoryEntity> = RentalHistoryEntity.fetchRequest()
-        let userID = UserDefaults.standard.string(forKey: "userID") ?? ""
-
+        let userID = UserDefaults.standard.string(forKey: "currentUserID") ?? ""
+        
         request.predicate = NSPredicate(format: "userID == %@ AND returnDate == nil", userID)
 
         do {

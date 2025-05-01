@@ -4,6 +4,8 @@ import NMapsMap
 
 class AddBoardVC: UIViewController {
     
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     let mapView: NMFMapView = {
         let mapView = NMFMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -42,7 +44,7 @@ class AddBoardVC: UIViewController {
         return add
     }()
     
-    var address: UITextField = {
+    var addressTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "주소를 입력하세요"
         textField.text = ""
@@ -63,13 +65,14 @@ class AddBoardVC: UIViewController {
         return textField
     }()
     
-    let addButtton : UIButton = {
+    lazy var addButtton : UIButton = {
         let button = UIButton()
         button.setTitle("등록하기", for: .normal)
         button.setTitleColor(UIColor(hex: "E7E2CC"), for: .normal)
         button.backgroundColor = UIColor(hex: "915B5B")
         button.layer.cornerRadius = 10
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.addTarget(self, action: #selector(registerKickboard), for: .touchDown)
         return button
     }()
     
@@ -83,13 +86,20 @@ class AddBoardVC: UIViewController {
         super.viewDidLoad()
         configure()
         navigationController?.navigationBar.isHidden = true
+        setupInitialCamera()
+        
     }
-    
+    private func setupInitialCamera() {
+        // 경주(35.836, 129.219) 위치로 카메라를 이동
+        let cameraUpdate = NMFCameraUpdate(scrollTo: NMGLatLng(lat: 35.836, lng: 129.219))
+        // 지도에 카메라 이동 적용
+        mapView.moveCamera(cameraUpdate)
+    }
     func configure() {
         [label,
          label2,
          addBoardImage,
-         address,
+         addressTextField,
          separator,
          addLabel,
          mapView,
@@ -111,7 +121,7 @@ class AddBoardVC: UIViewController {
             make.height.equalTo(332)
         }
         
-        address.snp.makeConstraints { make in
+        addressTextField.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.top.equalTo(mapView.snp.bottom).offset(33)
             make.width.equalTo(348)
@@ -119,7 +129,7 @@ class AddBoardVC: UIViewController {
         }
         
         addButtton.snp.makeConstraints { make in
-            make.top.equalTo(address.snp.bottom).offset(25)
+            make.top.equalTo(addressTextField.snp.bottom).offset(25)
             make.trailing.leading.equalToSuperview().inset(26)
             make.height.equalTo(46)
         }
@@ -135,5 +145,66 @@ class AddBoardVC: UIViewController {
             make.centerX.equalToSuperview()
         }
         
+    }
+    @objc func registerKickboard() {
+        if RentalManager.shared.checkUserIsRenting() {
+            let alert = UIAlertController(title: "다메다메", message: "대여 중엔 안댐", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in })
+            self.present(alert, animated: true)
+            
+        } else {
+            guard let address = addressTextField.text, !address.isEmpty else {
+                print("주소가 비어 있습니다.")
+                return
+            }
+            
+            
+            let geocoder = CLGeocoder()
+            geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
+                if let error = error {
+                    return
+                }
+                
+                guard let location = placemarks?.first?.location else {
+                    return
+                }
+                
+                let latitude = location.coordinate.latitude
+                let longitude = location.coordinate.longitude
+                
+                UserDefaults.standard.set([latitude, longitude], forKey: "RegisteredKickboard")
+                
+                print("등록된 좌표: \(latitude), \(longitude)")
+                
+                let marker = NMFMarker()
+                marker.position = NMGLatLng(lat: latitude, lng: longitude)
+                marker.captionText = "킥보드 위치"
+                marker.mapView = self?.mapView
+                guard let self = self else { return }
+                
+                let newKickboard = KickboardEntity(context: self.context)
+                newKickboard.kickboardID = UUID().uuidString
+                newKickboard.latitude = latitude
+                newKickboard.longitude = longitude
+                newKickboard.isRentaled = false
+                newKickboard.battery = 100
+                
+                do {
+                    try context.save()
+                    
+                    if let tabBarVC = self.tabBarController,
+                       let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
+                       let mapVC = navVC.viewControllers.first as? MapVC {
+                        mapVC.reloadMarkers()
+                    }
+                } catch {
+                    print("저장 실패: \(error.localizedDescription)")
+                }
+                
+                DispatchQueue.main.async {
+                    self.tabBarController?.selectedIndex = 0  // 0 = 지도 탭 인덱스
+                }
+            }
+        }
     }
 }
