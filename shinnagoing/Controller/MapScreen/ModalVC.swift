@@ -198,7 +198,7 @@ class ModalVC: UIViewController {
         do {
             if let kickboard = try context.fetch(fetchRequest).first {
                 kickboard.isRentaled = true
-                let userID = UserDefaults.standard.string(forKey: "userID") ?? ""
+                let userID = UserDefaults.standard.string(forKey: "currentUserID")
                 let rental = RentalHistoryEntity(context: context)
                 rental.kickboardID = selectedID
                 rental.userID = userID
