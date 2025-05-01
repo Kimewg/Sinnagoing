@@ -243,7 +243,7 @@ class JoinVC: UIViewController {
 
             // 저장
             UserDefaults.standard.set(users, forKey: "users")
-
+            UserDefaults.standard.set(id, forKey: "currentUserID")
             print("회원가입 성공: \(name) ( \(id))")
             navigationController?.popViewController(animated: true)
         }

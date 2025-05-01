@@ -186,7 +186,13 @@ class MyPageVC: UIViewController {
                 }
             }
         }
-        @objc func logoutTapped() {
+    @objc func logoutTapped() {
+        if RentalManager.shared.checkUserIsRenting() {
+            let alert = UIAlertController(title: "다메다메", message: "킥보드 돌려주고 가셈", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "확인", style: .default) { _ in })
+            self.present(alert, animated: true)
+        }
+        else {
             let loginVC = LoginVC()
             let navVC = UINavigationController(rootViewController: loginVC)
             let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
@@ -195,6 +201,7 @@ class MyPageVC: UIViewController {
                 window.makeKeyAndVisible()
             }
         }
+    }
         func configure() {
             [
                 myPageLabel,

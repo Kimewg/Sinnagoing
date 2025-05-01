@@ -1,5 +1,6 @@
 import UIKit
 import SnapKit
+import CoreData
 
 class LoginVC: UIViewController {
     
@@ -60,7 +61,6 @@ class LoginVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
         
         configure()

@@ -93,7 +93,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         // 위치 업데이트 현재는 현위치가 미국이라서 일단 주석
-      //  locationManager.startUpdatingLocation()
+        //  locationManager.startUpdatingLocation()
         // 키보드가 자동으로 올라오도록 설정
         DispatchQueue.main.async {
             self.searchTextField.becomeFirstResponder()
@@ -151,17 +151,24 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     
     // 데이터베이스에서 킥보드 정보를 가져와서 마커를 추가하는 함수
     private func fetchDataMarkers() {
-        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
-        
-        do {
-            let kickboards = try context.fetch(fetchRequest)
-            kickboards.forEach { self.addMarker(kickboard: $0) }
-        } catch {
-            print("CoreData fetch 에러: \(error.localizedDescription)")
+        // KickboardEntity에 대한 FetchRequest 생성
+        if RentalManager.shared.checkUserIsRenting(){
+            print("대여중이라 마커 숨길거임")
+            return
+        }
+        else {
+            let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: false))
+            
+            do {
+                // 데이터베이스에서 킥보드 데이터 가져오기
+                let kickboards = try context.fetch(fetchRequest)
+                kickboards.forEach { self.addMarker(kickboard: $0) }
+            } catch {
+                print("CoreData fetch 에러: \(error.localizedDescription)")
+            }
         }
     }
-    
     // 킥보드 데이터를 기반으로 마커를 지도에 추가하는 함수
     private func addMarker(kickboard: KickboardEntity) {
         // NMFMarker 객체 생성
@@ -205,6 +212,7 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
             return true
         }
     }
+    
     // 마커 리로드 함수
     func reloadMarkers() {
         // 현재 마커들 지도에서 지우기
@@ -240,22 +248,20 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
     func enableUserLocation() {
         mapView.positionMode = .direction // 또는 .normal
     }
-
+    
     
     // MARK: - Actions
     
     @objc private func returnButtonTapped() {
         let context = CoreDataManager.shared.context
         
-        let fetchRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
-        
-        fetchRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: true))
-        
+        let kickboardRequest: NSFetchRequest<KickboardEntity> = KickboardEntity.fetchRequest()
+        let historyRequest: NSFetchRequest<RentalHistoryEntity> = RentalHistoryEntity.fetchRequest()
+        kickboardRequest.predicate = NSPredicate(format: "isRentaled == %@", NSNumber(value: true))
         do {
-            if let kickboard = try context.fetch(fetchRequest).first {
+            if let kickboard = try context.fetch(kickboardRequest).first {
                 
                 let currentLocation = locationManager.location
-                
                 kickboard.isRentaled = false
                 kickboard.battery -= 8
                 
@@ -263,6 +269,15 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
                 
                 kickboard.latitude = currentLocation!.coordinate.latitude
                 kickboard.longitude = currentLocation!.coordinate.longitude
+                
+                historyRequest.predicate = NSPredicate(format: "kickboardID == %@ AND userID == %@ AND returnDate == nil", kickboard.kickboardID ?? "", UserDefaults.standard.string(forKey: "currentUserID") ?? "")
+                guard let rental = try context.fetch(historyRequest).first else {
+                    print("historyRequest 실패")
+                    return
+                }
+                let userID = UserDefaults.standard.string(forKey: "currentUserID")
+                rental.returnDate = Date()
+                rental.userID = userID
                 
                 try context.save()
                 
@@ -273,11 +288,27 @@ class MapVC: UIViewController, CLLocationManagerDelegate {
                 })
                 present(alert, animated: true)
                 
-                reloadMarkers()
+                self.reloadMarkers()
+                
             }
         } catch {
             print("반납 처리 중 오류")
         }
+        do {
+            let histories = try context.fetch(RentalHistoryEntity.fetchRequest()) as! [RentalHistoryEntity]
+            for (index, h) in histories.enumerated() {
+                print("""
+                [\(index + 1)]
+                유저 ID: \(h.userID ?? "없음")
+                킥보드 ID: \(h.kickboardID ?? "없음")
+                대여 시간: \(h.rentalDate ?? Date())
+                반납 시간: \(h.returnDate?.description ?? "아직 반납 안됨")
+                """)
+            }
+        } catch {
+            print(":x: RentalHistoryEntity 가져오기 실패: \(error)")
+        }
+        
     }
     @objc func focusSearchField() {
         searchTextField.becomeFirstResponder()
