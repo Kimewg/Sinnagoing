@@ -16,7 +16,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C66D169D2DBE506100C8EC28 /* Exceptions for "shinnagoing" folder in "shinnagoing" target */ = {
+		39D454B72DC45BAA0018021C /* Exceptions for "shinnagoing" folder in "shinnagoing" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -29,7 +29,7 @@
 		C66D168D2DBE505F00C8EC28 /* shinnagoing */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C66D169D2DBE506100C8EC28 /* Exceptions for "shinnagoing" folder in "shinnagoing" target */,
+				39D454B72DC45BAA0018021C /* Exceptions for "shinnagoing" folder in "shinnagoing" target */,
 			);
 			path = shinnagoing;
 			sourceTree = "<group>";

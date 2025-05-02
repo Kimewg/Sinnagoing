@@ -12,7 +12,7 @@ struct Location: Decodable {
     let telephone: String
     let address: String
     let roadAddress: String
-
+    
     private enum CodingKeys: String, CodingKey {
         case title
         case link
