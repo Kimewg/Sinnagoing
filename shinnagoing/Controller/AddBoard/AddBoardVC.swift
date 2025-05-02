@@ -91,7 +91,8 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
         locationManager.requestWhenInUseAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.startUpdatingLocation()
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
         addressTextField.delegate = self
     }
     private func setupInitialCamera() {
@@ -170,6 +171,21 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
         }
         
     }
+    @objc func keyboardWillShow(notification: NSNotification) {
+        if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            let height = keyboardFrame.height
+            // 이미 올라간 상태면 중복 이동 방지
+            if self.view.frame.origin.y == 0 {
+                self.view.frame.origin.y -= height / 2
+            }
+        }
+    }
+    
+    @objc func keyboardWillHide(notification: NSNotification) {
+        if self.view.frame.origin.y != 0 {
+            self.view.frame.origin.y = 0
+        }
+    }
     
     @objc func registerKickboard() {
         // 대여 중이면 등록 불가
@@ -179,37 +195,37 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
             self.present(alert, animated: true)
             return
         }
-
+        
         // 주소 필수 확인
         guard let address = addressTextField.text, !address.isEmpty else {
             print("주소가 비어 있습니다.")
             return
         }
-
+        
         // 현재 로그인한 사용자 ID 불러오기
         guard let userID = UserDefaults.standard.string(forKey: "currentUserID") else {
             print("로그인 정보 없음")
             return
         }
-
+        
         // 주소 → 좌표 변환
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(address) { [weak self] placemarks, error in
             guard let self else { return }
-
+            
             if let error = error {
                 print("주소 변환 실패: \(error.localizedDescription)")
                 return
             }
-
+            
             guard let location = placemarks?.first?.location else {
                 print("위치 정보 없음")
                 return
             }
-
+            
             let latitude = location.coordinate.latitude
             let longitude = location.coordinate.longitude
-
+            
             // 마커 표시
             let marker = NMFMarker()
             marker.position = NMGLatLng(lat: latitude, lng: longitude)
@@ -218,7 +234,7 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
             marker.height = 50
             marker.captionText = "킥보드 위치"
             marker.mapView = self.mapView
-
+            
             // Core Data 저장
             let context = CoreDataManager.shared.context
             let newKickboard = KickboardEntity(context: context)
@@ -229,18 +245,18 @@ class AddBoardVC: UIViewController, UITextFieldDelegate {
             newKickboard.isRentaled = false
             newKickboard.userID = userID
             newKickboard.rentalCount = 0
-
+            
             do {
                 try context.save()
                 print("킥보드 저장 완료")
-
+                
                 // 마커 리로드
                 if let tabBarVC = self.tabBarController,
                    let navVC = tabBarVC.viewControllers?[0] as? UINavigationController,
                    let mapVC = navVC.viewControllers.first as? MapVC {
                     mapVC.reloadMarkers()
                 }
-
+                
                 DispatchQueue.main.async {
                     self.tabBarController?.selectedIndex = 0
                 }

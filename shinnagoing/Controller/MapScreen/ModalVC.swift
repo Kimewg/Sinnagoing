@@ -53,7 +53,7 @@ class ModalVC: UIViewController {
         print("\n:흰색_확인_표시: CoreData 전체 출력 완료")
     }
     // MARK: - printAllCoreData 여기까지
-        
+    
     private func setupUI() {
         view.backgroundColor = .white
         modalPresentationStyle = .pageSheet
@@ -73,13 +73,13 @@ class ModalVC: UIViewController {
         batteryImageView.image = imageForBatteryLevel(Int(battery))
         batteryImageView.contentMode = .scaleAspectFit
         batteryImageView.tintColor = UIColor(hex: "915B5B")
-
-
+        
+        
         let kickBoardImageView = UIImageView(image: UIImage(named: "kickBoard"))
         kickBoardImageView.contentMode = .scaleAspectFit
         
         let priceLabel = UILabel()
-        priceLabel.text = "1분당 3500만원"
+        priceLabel.text = "1분당 100원"
         priceLabel.font = UIFont.boldSystemFont(ofSize: 15)
         priceLabel.textColor = UIColor(hex: "BEBEBE")
         priceLabel.textAlignment = .center
@@ -130,7 +130,7 @@ class ModalVC: UIViewController {
                 return UIImage(named: "battery.0")  // 예외처리 이미지
             }
         }
-       
+        
         // --- 오토레이아웃 ---
         batteryLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(20)
@@ -150,7 +150,7 @@ class ModalVC: UIViewController {
             make.leading.equalTo(batteryImageView.snp.trailing).offset(145)
             make.top.equalToSuperview().offset(17)
         }
-    
+        
         priceLabel.snp.makeConstraints {
             $0.top.equalTo(batteryLabel.snp.bottom).offset(1)
             $0.leading.equalTo(view.safeAreaLayoutGuide).offset(30)
