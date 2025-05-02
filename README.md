@@ -199,5 +199,4 @@ if RentalManager.shared.checkUserIsRenting() {
     // rootViewController 전환
 }
 ```
-=======
 
